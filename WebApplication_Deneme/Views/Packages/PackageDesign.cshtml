@@ -1,0 +1,110 @@
+﻿@model IEnumerable<WebApplication_Domain.Entities.Package>
+@using System.IO
+
+@{
+    ViewData["Title"] = "Paket Listesi";
+    Layout = User.IsInRole("Öğretmen") ? "_TeacherLayout" :
+     User.IsInRole("Öğrenci") ? "_StudentLayout" :
+     User.IsInRole("Admin") ? "_AdminLayout" : "_Layout";
+}
+
+<h1>Paket Listesi</h1>
+
+<div class="row">
+    @foreach (var package in Model)
+    {
+        <div class="col-md-4"> @* Her satırda 3 kart olacak şekilde ayarlandı. Ekran boyutuna göre ayarlanabilir. *@
+
+            <div class="card mb-4 box-shadow">
+                @{
+                    string[] validExtensions = new[] { ".jpg", ".jpeg", ".png" };
+                    string imageFileName = package.Id.ToString();
+                    string imageUrl = null;
+
+                    // Geçerli dosya uzantılarını kontrol et
+                    foreach (var ext in validExtensions)
+                    {
+                        string imagePath = $"/img/{imageFileName}{ext}";
+                        string physicalPath = Directory.GetCurrentDirectory() + "/wwwroot/img/" + imageFileName + ext;
+
+                        if (System.IO.File.Exists(physicalPath))
+                        {
+                            imageUrl = Url.Content(imagePath);
+                            break;
+                        }
+                    }
+
+                    // Eğer resim bulunamazsa varsayılan resmi kullan
+                    if (imageUrl == null)
+                    {
+                        imageUrl = Url.Content("~/img/Sınıf.jpg");
+                    }
+                }
+                @if (User.IsInRole("Öğrenci"))
+                {
+                    <img class="card-img-top" src="@imageUrl" alt="@package.Name" style="max-height: 200px; object-fit: cover;">
+                    <div class="card-body">
+                        <h4 class="card-title">@package.Name</h4>
+                        <p class="card-text">@package.Description</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="btn-group">
+                                <a asp-controller="Packages" asp-action="Details" asp-route-id="@package.Id" class="btn btn-sm btn-outline-secondary">Detaylar</a>
+                                <a asp-action="Purchase" asp-controller="Payments" asp-route-packageId="@package.Id" class="btn btn-primary">
+                                    Satın Al (@package.Price.ToString("C"))
+                                </a>
+                            </div>
+                            <small class="text-muted">@package.Price TL</small>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                        <img class="card-img-top" src="@imageUrl" alt="@package.Name" style="max-height: 200px; object-fit: cover;">
+                        <div class="card-body">
+                            <h4 class="card-title">@package.Name</h4>
+                            <p class="card-text">@package.Description</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="btn-group">
+                                    <a asp-controller="Account" asp-action="Index" asp-route-id="@package.Id" class="btn btn-sm btn-outline-secondary">Detaylar</a>
+                                    <a asp-controller="Account" asp-action="Index" asp-route-id="@package.Id" class="btn btn-sm btn-primary">Satın Al</a>
+                                </div>
+                                <small class="text-muted">@package.Price TL</small>
+                            </div>
+                        </div>
+                    
+                }
+
+
+
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .card {
+        border: 1px solid #eee; /* Daha hafif bir çerçeve */
+        border-radius: 8px; /* Köşeleri yuvarlaklaştır */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Hafif gölge */
+        transition: transform 0.2s; /* Hover efekti için geçiş */
+    }
+
+    .card:hover {
+        transform: translateY(-5px); /* Hoverda yukarı kaydırma */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Daha belirgin gölge */
+    }
+
+    .card-title {
+        font-weight: 600; /* Başlığı kalınlaştır */
+        margin-bottom: 0.75rem;
+    }
+
+    .card-text {
+        color: #555; /* Açıklama metnini koyulaştır */
+        font-size: 0.9rem;
+    }
+
+    .text-muted {
+        font-size: 0.8rem;
+    }
+</style>

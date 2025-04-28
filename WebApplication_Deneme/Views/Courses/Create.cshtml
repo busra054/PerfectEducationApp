@@ -1,0 +1,109 @@
+﻿@model WebApplication_Domain.Entities.Course
+
+@{
+    ViewData["Title"] = "Yeni Kurs Oluştur";
+    Layout = User.IsInRole("Öğretmen") ? "_TeacherLayout" :
+          User.IsInRole("Öğrenci") ? "_StudentLayout" :
+          User.IsInRole("Admin") ? "_AdminLayout" : "_Layout";
+}
+
+<div class="container py-5">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white py-4">
+            <h2 class="mb-0 text-center"><i class="fas fa-chalkboard-teacher mr-2"></i>Yeni Kurs Oluştur</h2>
+        </div>
+
+        <div class="card-body p-5">
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            }
+
+            <form asp-action="Create" id="courseForm" novalidate>
+                <div asp-validation-summary="All" class="text-danger"></div>
+
+                <div class="form-group mb-4">
+                    <label class="font-weight-bold text-dark">Kurs Adı <span class="text-danger">*</span></label>
+                    <input asp-for="Name" class="form-control form-control-lg"
+                           placeholder="Örnek: Temel Matematik 101" required />
+                    <span asp-validation-for="Name" class="text-danger small"></span>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label class="font-weight-bold text-dark">Kurs Açıklaması <span class="text-danger">*</span></label>
+                    <textarea asp-for="Description" class="form-control form-control-lg" rows="5"
+                              placeholder="Kurs içeriği hakkında detaylı bilgi..." required></textarea>
+                    <span asp-validation-for="Description" class="text-danger small"></span>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label class="font-weight-bold text-dark">Eğitim Paketi <span class="text-danger">*</span></label>
+                    <select asp-for="PackageId" asp-items="ViewBag.Packages"
+                            class="form-control select2" style="width: 100%;" required>
+                        <option value="">Lütfen bir paket seçin</option>
+                    </select>
+                    <span asp-validation-for="PackageId" class="text-danger small"></span>
+                </div>
+
+                <div class="form-group text-center mt-5">
+                    <button type="submit" class="btn btn-success btn-lg px-5 py-3">
+                        <i class="fas fa-check-circle mr-2"></i>Kursu Oluştur
+                    </button>
+                    <a asp-action="MyCourses" class="btn btn-outline-secondary btn-lg px-5 py-3 ml-2">
+                        <i class="fas fa-times-circle mr-2"></i>İptal
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        .select2-container--default .select2-selection--single {
+            height: 45px;
+            padding: 10px;
+            font-size: 1.1rem;
+            border-radius: 0.375rem;
+        }
+
+            .select2-container--default .select2-selection--single .select2-selection__arrow {
+                height: 43px;
+            }
+
+        .card {
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+    </style>
+}
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2({
+                placeholder: "Paket seçin",
+                allowClear: true,
+                dropdownParent: $('#courseForm')
+            });
+
+            $('#courseForm').submit(function(e) {
+                if (!this.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                this.classList.add('was-validated');
+            });
+        });
+    </script>
+}

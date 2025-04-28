@@ -1,0 +1,245 @@
+﻿@model Course
+@{
+    ViewData["Title"] = "ManageCourse";
+    Layout = User.IsInRole("Öğretmen") ? "_TeacherLayout" :
+          User.IsInRole("Öğrenci") ? "_StudentLayout" :
+          User.IsInRole("Admin") ? "_AdminLayout" : "_Layout";
+}
+
+<div class="container">
+    <!-- Başlık ve Hata Mesajları -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>@Model.Name Yönetimi</h2>
+        <a asp-action="MyCourses" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Geri Dön
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["SuccessMessage"]
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @Html.Raw(TempData["ErrorMessage"])
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+    }
+
+    <!-- Materyal Yükleme -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-file-upload mr-2"></i>Materyal Ekle</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="UploadMaterial" enctype="multipart/form-data">
+                <input type="hidden" name="courseId" value="@Model.Id" />
+
+                <div class="form-group">
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" name="file"
+                               id="materialFile" required
+                               accept=".mp4,.pdf,.docx,.pptx,.jpg,.jpeg,.png">
+                        <label class="custom-file-label" for="materialFile">Dosya Seçin</label>
+                    </div>
+                    <small class="form-text text-muted">İzin verilen formatlar: MP4, PDF, DOCX, PPTX, JPG, PNG</small>
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-upload mr-2"></i>Yükle
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Ödev Oluşturma -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0"><i class="fas fa-tasks mr-2"></i>Yeni Ödev Oluştur</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="CreateAssignment" enctype="multipart/form-data">
+                <input type="hidden" name="CourseId" value="@Model.Id" />
+
+                <!-- Ödev Başlığı -->
+                <div class="form-group">
+                    <label class="font-weight-bold">Ödev Başlığı <span class="text-danger">*</span></label>
+                    <input name="Title" class="form-control"
+                           placeholder="Ödev konusu giriniz" required
+                           oninvalid="this.setCustomValidity('Lütfen ödev başlığını giriniz')"
+                           oninput="this.setCustomValidity('')">
+                </div>
+
+                <!-- Açıklama -->
+                <div class="form-group">
+                    <label class="font-weight-bold">Açıklama</label>
+                    <textarea name="Description" class="form-control" rows="4"
+                              placeholder="Ödev detaylarını buraya yazın..."></textarea>
+                    <small class="form-text text-muted">(Opsiyonel)</small>
+                </div>
+
+                <!-- Teslim Tarihi -->
+                <div class="form-group">
+                    <label class="font-weight-bold">Teslim Tarihi <span class="text-danger">*</span></label>
+                    <input type="datetime-local" name="DueDate"
+                           class="form-control" required
+                           min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")"
+                           oninvalid="this.setCustomValidity('Lütfen geçerli bir tarih seçin')"
+                           oninput="this.setCustomValidity('')">
+                </div>
+
+                <!-- Dosya Yükleme -->
+                <div class="form-group">
+                    <label class="font-weight-bold">Ek Dosya</label>
+                    <div class="custom-file">
+                        <input type="file" name="file" class="custom-file-input"
+                               id="assignmentFile" accept=".pdf,.docx,.zip">
+                        <label class="custom-file-label" for="assignmentFile">Dosya seçin...</label>
+                    </div>
+                    <small class="form-text text-muted">
+                        (Opsiyonel) İzin verilen formatlar: PDF, DOCX, ZIP (Max 10MB)
+                    </small>
+                </div>
+
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save mr-2"></i>Ödev Oluştur
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Ödev Listesi -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="fas fa-tasks mr-2"></i>Kurs Ödevleri</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Assignments.Any())
+            {
+                <div class="row">
+                    @foreach (var assignment in Model.Assignments)
+                    {
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100 border-primary shadow">
+                                <div class="card-header bg-light">
+                                    <h5 class="card-title mb-0">
+                                        @assignment.Title
+                                        @if (assignment.DueDate < DateTime.Now)
+                                        {
+                                            <span class="badge badge-danger ml-2">Süresi Doldu</span>
+                                        }
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    @if (!string.IsNullOrEmpty(assignment.Description))
+                                    {
+                                        <div class="mb-3">
+                                            <p class="card-text text-muted">@assignment.Description</p>
+                                        </div>
+                                    }
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fas fa-clock text-muted mr-1"></i>
+                                            <small class="text-muted">
+                                                Teslim Tarihi: @assignment.DueDate.ToString("dd MMMM yyyy HH:mm")
+                                            </small>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(assignment.AttachmentPath))
+                                        {
+                                            <a href="/assignments/@assignment.AttachmentPath"
+                                               class="btn btn-sm btn-outline-primary"
+                                               download="@assignment.Title">
+                                                <i class="fas fa-download mr-1"></i>İndir
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle mr-2"></i>Henüz ödev eklenmemiş
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Materyal Listesi -->
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="fas fa-file-alt mr-2"></i>Kurs Materyalleri</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                @foreach (var material in Model.CourseMaterials)
+                {
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas @(material.Type == "Video" ? "fa-video" :
+                                              material.Type == "PDF" ? "fa-file-pdf" :
+                                              material.Type == "Word" ? "fa-file-word" : "fa-image")
+                                       fa-2x text-primary mr-3"></i>
+                                    <div>
+                                        <h6 class="mb-0">@material.Type</h6>
+                                        <small class="text-muted">@material.UploadDate.ToString("dd MMM yyyy")</small>
+                                    </div>
+                                </div>
+                                <div class="text-center">
+                                    <a href="/uploads/@material.FilePath"
+                                       class="btn btn-outline-secondary btn-block"
+                                       download="@material.FilePath">
+                                        <i class="fas fa-download mr-2"></i>İndir
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Dosya inputları için label güncelleme
+        document.querySelectorAll('.custom-file-input').forEach(input => {
+            input.addEventListener('change', function(e) {
+                let fileName = this.files[0]?.name || 'Dosya seçin...';
+                this.nextElementSibling.innerText = fileName;
+
+                // Dosya boyutu kontrolü (Max 10MB)
+                if (this.files[0]?.size > 10 * 1024 * 1024) {
+                    alert('Dosya boyutu 10MB sınırını aşıyor!');
+                    this.value = '';
+                    this.nextElementSibling.innerText = 'Dosya seçin...';
+                }
+            });
+        });
+
+        // Tarih validasyonu
+        document.querySelector('input[type="datetime-local"]').addEventListener('change', function() {
+            if (new Date(this.value) < new Date()) {
+                alert('Geçmiş tarih seçemezsiniz!');
+                this.value = '';
+            }
+        });
+    </script>
+}

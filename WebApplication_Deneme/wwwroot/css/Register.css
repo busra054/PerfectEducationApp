@@ -1,0 +1,134 @@
+﻿/* Genel yapı */
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f4f7fc;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-weight: 700;
+    font-size: 2rem;
+    color: #333;
+}
+
+/* Ana container */
+.main-container {
+    width: 100%;
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.horizontal-section {
+    display: flex;
+    /* Removed justify-content: space-between; */
+    gap: 15px;
+}
+
+/* Added a new class */
+.vertical-section {
+    display: flex;
+    flex-direction: column; /* This stacks child elements vertically */
+    gap: 15px;
+    width: 100%;
+    margin-bottom: 20px;
+}
+select[name="role"] {
+    width: 150px; /* Adjust width as needed */
+    padding: 5px 10px; /* Adjust padding as needed */
+    font-size: 0.8rem; /* Adjust font size as needed */
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    background-color: #fafafa;
+    margin-bottom:10px;
+}
+
+/* Input alanları */
+.input-box {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+    .input-box input {
+        width: 100%;
+        padding: 12px 15px;
+        font-size: 1rem;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        background-color: #fafafa;
+        box-sizing: border-box;
+    }
+
+        .input-box input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+    .input-box .icon {
+        position: absolute;
+        top: 50%;
+        left: 10px;
+        transform: translateY(-50%);
+    }
+
+    .input-box input::placeholder {
+        padding-left: 35px;
+    }
+
+/* Select box */
+select {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 1rem;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    background-color: #fafafa;
+}
+
+    select:focus {
+        outline: none;
+        border-color: #3498db;
+    }
+
+/* Buton */
+button#submit-btn {
+    width: 100%;
+    padding: 15px;
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+    button#submit-btn:hover {
+        background-color: #2980b9;
+    }
+
+/* Bağlantılar */
+a {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    color: #3498db;
+    text-decoration: none;
+}
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+.alert {
+    color: red;
+    text-align: center;
+    font-size: 1rem;
+    margin-top: 15px;
+}

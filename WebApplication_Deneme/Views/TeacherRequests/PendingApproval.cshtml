@@ -1,0 +1,85 @@
+﻿@model WebApplication_Domain.Entities.TeacherRequest
+
+@{
+    ViewData["Title"] = "Başvuru Durumu";
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+@if (Model == null)
+{
+    <div class="alert alert-danger">
+        <h4>Hata!</h4>
+        <p>Başvuru bilgileri yüklenemedi. Lütfen tekrar deneyin.</p>
+        <a asp-action="Apply" asp-route-userId="@ViewBag.UserId" class="btn btn-primary">
+            Yeni Başvuru Yap
+        </a>
+    </div>
+}
+else
+{
+    <div class="container mt-5">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0">Başvuru Takibi</h4>
+            </div>
+            <div class="card-body">
+                @if (Model.Status == WebApplication_Domain.Entities.RequestStatus.Pending)
+                {
+                    <div class="alert alert-warning">
+                        <h5>Başvurunuz İnceleniyor!</h5>
+                        <p class="mb-0">En kısa sürede sonuçlandırılacaktır.</p>
+                    </div>
+                }
+                else if (Model.Status == WebApplication_Domain.Entities.RequestStatus.Approved)
+                {
+                    <div class="alert alert-success">
+                        <h5>Başvurunuz Onaylandı! 🎉</h5>
+                        <a asp-controller="Account" asp-action="Index" class="btn btn-primary mt-3">
+                            Giriş Yap
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-danger">
+                        <h5>Başvurunuz Reddedildi</h5>
+                        <p class="mb-0">Sebep: @Model.AdminNotes</p>
+                        <a asp-action="Apply" asp-route-userId="@Model.UserId" class="btn btn-warning mt-3">
+                            Yeniden Başvur
+                        </a>
+                    </div>
+                }
+
+                <dl class="row">
+                    <dt class="col-sm-3">Başvuru Tarihi:</dt>
+                    <dd class="col-sm-9">@Model.RequestDate.ToString("dd.MM.yyyy HH:mm")</dd>
+
+                    <dt class="col-sm-3">Durum:</dt>
+                    <dd class="col-sm-9">
+                        <span class="badge @GetStatusBadge(WebApplication_Domain.Entities.RequestStatus.Pending)">
+                            @Model.Status
+                        </span>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+}
+
+
+
+@functions {
+    string GetStatusBadge(WebApplication_Domain.Entities.RequestStatus status) => status switch
+    {
+        WebApplication_Domain.Entities.RequestStatus.Pending => "badge-warning",
+        WebApplication_Domain.Entities.RequestStatus.Approved => "badge-success",
+        WebApplication_Domain.Entities.RequestStatus.Rejected => "badge-danger",
+        _ => "badge-secondary"
+    };
+}

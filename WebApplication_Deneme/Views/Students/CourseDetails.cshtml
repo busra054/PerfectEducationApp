@@ -1,0 +1,181 @@
+﻿@model Course
+@using Microsoft.AspNetCore.Identity
+@using WebApplication_Domain.Entities
+@inject UserManager<User> userManager
+
+@{
+    ViewData["Title"] = "Kurs Detayları";
+    Layout = "_StudentLayout";
+    var studentId = (await userManager.GetUserAsync(User)).Id;
+    var pendingAssignments = Model.Assignments.Where(a => !a.Submissions.Any(s => s.Student.UserId == studentId)).ToList();
+    var completedAssignments = Model.Assignments.Where(a => a.Submissions.Any(s => s.Student.UserId == studentId)).ToList();
+}
+
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between">
+            <h4 class="m-0 font-weight-bold text-primary">@Model.Name</h4>
+            <a href="/Students/MyCourses" class="btn btn-secondary">
+                <i class="fas fa-arrow-left mr-2"></i>Geri Dön
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <!-- Materyaller Bölümü (Değişmedi) -->
+                <div class="col-md-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-info">
+                                <i class="fas fa-file-alt mr-2"></i>Kurs Materyalleri
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.CourseMaterials.Any())
+                            {
+                                <ul class="list-group">
+                                    @foreach (var material in Model.CourseMaterials)
+                                    {
+                                        <li class="list-group-item">
+                                            <a href="/Materials/Download/@material.Id"
+                                               class="text-decoration-none text-dark">
+                                                <i class="fas fa-download mr-2"></i>
+                                                @material.FilePath
+                                            </a>
+                                            <span class="badge badge-secondary float-right">@material.Type</span>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <div class="alert alert-info">Henüz materyal eklenmemiş</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ödevler Bölümü (Revize Edildi) -->
+                <div class="col-md-6">
+                    <!-- Bekleyen Ödevler -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 bg-warning">
+                            <h6 class="m-0 font-weight-bold text-white">
+                                <i class="fas fa-exclamation-circle mr-2"></i>Bekleyen Ödevler
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            @if (pendingAssignments.Any())
+                            {
+                                <ul class="list-group">
+                                    @foreach (var assignment in pendingAssignments)
+                                    {
+                                        <li class="list-group-item">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h5 class="text-danger">@assignment.Title</h5>
+                                                    <p class="mb-1">@assignment.Description</p>
+                                                    <small class="text-muted">
+                                                        Son Teslim: @assignment.DueDate.ToString("dd MMM yyyy HH:mm")
+                                                    </small>
+                                                </div>
+                                                <div class="text-right">
+                                                    <a href="/Students/SubmitAssignment/@assignment.Id"
+                                                       class="btn btn-sm btn-danger">
+                                                        <i class="fas fa-paper-plane mr-1"></i>Teslim Et
+                                                    </a>
+                                                    <div class="mt-2">
+                                                        <small class="text-danger">
+                                                            Kalan Süre: @((assignment.DueDate - DateTime.Now).Days)gün
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle mr-2"></i>Tüm ödevler tamamlandı!
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Tamamlanan Ödevler -->
+                    <div class="card shadow">
+                        <div class="card-header py-3 bg-success">
+                            <h6 class="m-0 font-weight-bold text-white">
+                                <i class="fas fa-check-circle mr-2"></i>Tamamlanan Ödevler
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            @if (completedAssignments.Any())
+                            {
+                                <ul class="list-group">
+                                    @foreach (var assignment in completedAssignments)
+                                    {
+                                        var submission = assignment.Submissions.First(s => s.Student.UserId == studentId);
+                                        <li class="list-group-item">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h5 class="text-success">@assignment.Title</h5>
+                                                    <p class="mb-1">@submission.Comments</p>
+                                                    <small class="text-muted">
+                                                        Teslim Tarihi: @submission.SubmissionDate.ToString("dd MMM yyyy HH:mm")
+                                                    </small>
+                                                    @if (submission.Grade.HasValue)
+                                                    {
+                                                        <div class="mt-2">
+                                                            <span class="badge badge-info">
+                                                                Not: @submission.Grade/100
+                                                            </span>
+                                                            @if (!string.IsNullOrEmpty(submission.Feedback))
+                                                            {
+                                                                <span class="badge badge-secondary ml-2">
+                                                                    <i class="fas fa-comment mr-1"></i>Geri Bildirim Var
+                                                                </span>
+                                                            }
+                                                        </div>
+                                                    }
+                                                </div>
+                                                <div>
+                                                    <a href="/Students/ViewSubmission/@submission.Id"
+                                                       class="btn btn-sm btn-outline-success">
+                                                        <i class="fas fa-info-circle mr-1"></i>Detaylar
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle mr-2"></i>Henüz tamamlanmış ödev bulunmamaktadır
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stil İyileştirmeleri -->
+<style>
+    .list-group-item {
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+    }
+    .list-group-item:hover {
+        transform: translateX(5px);
+        border-left-color: #4e73df;
+    }
+    .card-header.bg-warning, .card-header.bg-success {
+        border-radius: 0.35rem 0.35rem 0 0;
+    }
+</style>

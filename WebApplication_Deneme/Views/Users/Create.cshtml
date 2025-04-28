@@ -1,0 +1,109 @@
+﻿@model WebApplication_Domain.Entities.User
+
+@{
+    ViewData["Title"] = "Create";
+    Layout = "";
+}
+@if (TempData["ErrorMessage"] != null)
+{
+	<div class="alert alert-danger">
+		@TempData["ErrorMessage"]
+	</div>
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+	<div class="alert alert-success">
+		@TempData["SuccessMessage"]
+	</div>
+}
+@foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+{
+	<div class="alert alert-danger">
+		@error.ErrorMessage
+	</div>
+}
+
+<link rel="stylesheet" href="~/css/Create.css" asp-append-version="true" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.10/css/all.css" integrity="sha384-+d0P83n9kaQMCwj8F4RJB66tzIwOKmrdb46+porD/OvrJ+37WqIM7UoBtwHO6Nlg" crossorigin="anonymous">
+<!-- Open Sans -->
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet">
+<body>
+	<div class="bgImg"></div>
+	<div class="content">
+		<div class="d-flex h-100 align-items-center justify-content-center">
+			<div class="container">
+				<div class="row">
+					<div class="col-md-4 col-sm-6 ml-auto mr-auto">
+						<div class="card">
+							<div class="card-body">
+								
+									<div class="glowBox">
+										<h4 class="title">Sign Up</h4>
+										<div class="socialMedia">
+											<a href="#" class="btn btn-just-icon btn-link">
+												<i class="fab fa-facebook-square"></i>
+											</a>
+											<a href="#" class="btn btn-just-icon btn-link">
+												<i class="fab fa-twitter"></i>
+											</a>
+											<a href="#" class="btn btn-just-icon btn-link">
+												<i class="fab fa-google-plus"></i>
+											</a>
+										</div>
+									</div>
+								
+								<div class="desc text-center">
+									<p>Sign up now to use our services!</p>
+								</div>
+								<form asp-controller="Users" asp-action="Create" method="post">
+									@Html.AntiForgeryToken()
+									<div class="signUp">
+										<span>
+											<input type="text" class="form" placeholder="Name" name="Name" asp-for="Name" autocomplete="off" />
+											<span asp-validation-for="Name" class="text-danger"></span> <!-- Name alanının hatası -->
+										</span>
+										<span>
+											<input type="email" class="form" placeholder="Email" name="Email" asp-for="Email" autocomplete="off" />
+											<span asp-validation-for="Email" class="text-danger"></span> <!-- Email alanının hatası -->
+										</span>
+										<span>
+											<input type="password" class="form" name="password" placeholder="Password" required />
+										</span>
+										<span>
+											<select class="form" name="Role" asp-for="Role">
+												<option value="">Select Role</option>
+												<option value="Öğrenci">Öğrenci</option>
+												<option value="Öğretmen">Öğretmen</option>
+											</select>
+										</span>
+									</div>
+									<div class="text-center">
+										<button type="submit" class="btn btn-primary btn-wd btn-lg">Sign Up</button>
+									</div>
+									<div class="text-center mt-3">
+										<p>
+											Do you have an account?
+											<a asp-controller="Account" asp-action="Index" class="text-primary">Login</a>
+										</p>
+									</div>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+	@{
+		await Html.RenderPartialAsync("_ValidationScriptsPartial");
+	}
+}

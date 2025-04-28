@@ -10,6 +10,7 @@ namespace WebApplication_Infrastructure.Data
     {
         public ApplicationDbContext()
         {
+
         }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)

@@ -1,0 +1,103 @@
+﻿@model AssignmentSubmission
+@{
+    ViewData["Title"] = "Ödevlerim";
+    Layout = "_StudentLayout";
+}
+
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Ödev Teslim Formu</h6>
+            @if (Model.Grade.HasValue)
+            {
+                <div class="badge badge-success p-2">
+                    Notunuz: @Model.Grade/100
+                    <i class="fas fa-star ml-2"></i>
+                </div>
+            }
+        </div>
+        <div class="card-body">
+            <!-- Geri Bildirim Gösterimi -->
+            @if (!string.IsNullOrEmpty(Model.Feedback))
+            {
+                <div class="alert alert-info mb-4">
+                    <h5 class="alert-heading">
+                        <i class="fas fa-comment-dots"></i> Öğretmen Geri Bildirimi
+                    </h5>
+                    <hr>
+                    <p class="mb-0">@Model.Feedback</p>
+                    @if (Model.GradedDate.HasValue)
+                    {
+                        <small class="text-muted mt-2 d-block">
+                            Değerlendirme Tarihi: @Model.GradedDate.Value.ToString("dd MMMM yyyy HH:mm")
+                        </small>
+                    }
+                </div>
+            }
+
+            <!-- Dosya Bilgisi -->
+            @if (!string.IsNullOrEmpty(Model.FilePath))
+            {
+                <div class="alert alert-secondary mb-4">
+                    <i class="fas fa-file-archive mr-2"></i>
+                    Son Gönderilen Dosya:
+                    <a href="~/submissions/@Model.FilePath" class="font-weight-bold ml-2">
+                        @Model.FilePath
+                    </a>
+                    <small class="d-block mt-2 text-muted">
+                        Son Gönderim Tarihi: @Model.SubmissionDate.ToString("dd MMMM yyyy HH:mm")
+                    </small>
+                </div>
+            }
+
+            <!-- Form -->
+            <form asp-action="SubmitAssignment" method="post" enctype="multipart/form-data">
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="AssignmentId" />
+
+                <div class="form-group">
+                    <label asp-for="Comments"></label>
+                    <textarea asp-for="Comments" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="Comments" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label>Dosya</label>
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" name="file" id="fileInput"
+                        @(Model.Id == 0 ? "required" : "")>
+                        <label class="custom-file-label" for="fileInput">
+                            @(Model.Id == 0 ? "Dosya Seçin" : "Yeni Dosya Seçin")
+                        </label>
+                    </div>
+                    <span asp-validation-for="FilePath" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    @(Model.Id == 0 ? "Gönder" : "Güncelle")
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const label = document.querySelector('.custom-file-label');
+            const errorSpan = document.getElementById('fileError');
+
+            if (file) {
+                label.textContent = file.name;
+                const allowedExtensions = /(\.docx|\.pdf|\.txt|\.zip|\.rar|\.xlsx|\.mp4)$/i;
+                if (!allowedExtensions.exec(file.name)) {
+                    errorSpan.textContent = 'Geçersiz dosya formatı!';
+                    e.target.value = '';
+                    label.textContent = 'Lütfen geçerli bir dosya seçin...';
+                } else {
+                    errorSpan.textContent = '';
+                }
+            }
+        });
+    </script>
+}

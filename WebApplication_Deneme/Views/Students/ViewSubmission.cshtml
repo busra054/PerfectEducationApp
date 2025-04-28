@@ -1,0 +1,149 @@
+﻿@model AssignmentSubmission
+@{
+    ViewData["Title"] = "Ödev Detayları";
+    Layout = "_StudentLayout";
+}
+
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center bg-primary">
+            <h4 class="m-0 font-weight-bold text-white">
+                <i class="fas fa-file-alt mr-2"></i>@Model.Assignment.Title
+            </h4>
+            <a href="@Url.Action("CourseDetails", new { id = Model.Assignment.CourseId })"
+               class="btn btn-light">
+                <i class="fas fa-arrow-left mr-2"></i>Kursa Dön
+            </a>
+        </div>
+
+        <div class="card-body">
+            <!-- Not Bilgisi -->
+            <div class="alert @(Model.Grade >= 50 ? "alert-success" : "alert-danger")">
+                <div class="d-flex align-items-center">
+                    <i class="fas @(Model.Grade >= 50 ? "fa-check-circle" : "fa-exclamation-triangle") fa-2x mr-3"></i>
+                    <div>
+                        <h4 class="alert-heading mb-1">Ödev Notunuz</h4>
+                        <div class="d-flex align-items-center">
+                            <span class="display-4 font-weight-bold mr-3">@Model.Grade/100</span>
+                            @if (Model.GradedDate.HasValue)
+                            {
+                                <span class="badge badge-secondary">
+                                    <i class="fas fa-calendar-alt mr-2"></i>
+                                    @Model.GradedDate.Value.ToString("dd MMM yyyy HH:mm")
+                                </span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Geri Bildirim -->
+            @if (!string.IsNullOrEmpty(Model.Feedback))
+            {
+                <div class="card border-left-warning mb-4">
+                    <div class="card-header bg-warning text-white">
+                        <h5 class="m-0 font-weight-bold">
+                            <i class="fas fa-comments mr-2"></i>Öğretmen Geri Bildirimi
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="font-italic">@Model.Feedback</div>
+                    </div>
+                </div>
+            }
+
+            <!-- Teslim Detayları -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card border-left-info">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="m-0 font-weight-bold">
+                                <i class="fas fa-info-circle mr-2"></i>Teslim Bilgileri
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <dl class="row">
+                                <dt class="col-sm-4">Teslim Tarihi:</dt>
+                                <dd class="col-sm-8">@Model.SubmissionDate.ToString("dd MMM yyyy HH:mm")</dd>
+
+                                <dt class="col-sm-4">Son Teslim Tarihi:</dt>
+                                <dd class="col-sm-8">@Model.Assignment.DueDate.ToString("dd MMM yyyy HH:mm")</dd>
+
+                                <dt class="col-sm-4">Gecikme:</dt>
+                                <dd class="col-sm-8">
+                                    @{
+                                        var delay = Model.SubmissionDate - Model.Assignment.DueDate;
+                                        var delayStatus = delay.TotalHours > 0
+                                        ? $"+{delay.TotalHours:F1} saat"
+                                        : "Zamanında Teslim";
+                                    }
+                                    <span class="badge @(delay.TotalHours > 0 ? "badge-danger" : "badge-success")">
+                                        @delayStatus
+                                    </span>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card border-left-success">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="m-0 font-weight-bold">
+                                <i class="fas fa-file-archive mr-2"></i>Dosya Bilgisi
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <a href="~/submissions/@Model.FilePath"
+                                   class="btn btn-outline-dark btn-block">
+                                    <i class="fas fa-download fa-2x mr-2"></i>
+                                    Dosyayı İndir
+                                </a>
+                            </div>
+                            <div class="small text-muted">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Dosya Tipi: @System.IO.Path.GetExtension(Model.FilePath)
+                                (@(Model.FilePath.Length / 1024) KB)
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Öğrenci Yorumu -->
+            <div class="card mt-4 border-left-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="m-0 font-weight-bold">
+                        <i class="fas fa-comment mr-2"></i>Sizin Yorumunuz
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(Model.Comments))
+                    {
+                        <p class="mb-0 font-italic">"@Model.Comments"</p>
+                    }
+                    else
+                    {
+                        <div class="text-muted">Yorum eklenmemiş</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card-header {
+        border-radius: 0.35rem 0.35rem 0 0;
+    }
+
+    dl dt {
+        font-weight: 500;
+    }
+
+    .alert h4 {
+        font-size: 1.5rem;
+    }
+</style>

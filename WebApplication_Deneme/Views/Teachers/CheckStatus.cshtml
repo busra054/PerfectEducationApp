@@ -1,0 +1,33 @@
+﻿@model WebApplication_Domain.Entities.TeacherRequest
+
+<div class="container">
+    <h2>Başvuru Durumu</h2>
+
+    <div class="card">
+        <div class="card-body">
+           
+
+            @if (Model.Status == WebApplication_Domain.Entities.RequestStatus.Pending)
+            {
+                <div class="alert alert-info">
+                    Başvurunuz incelenme aşamasındadır
+                </div>
+            }
+            else if (Model.Status == WebApplication_Domain.Entities.RequestStatus.Approved)
+            {
+                <div class="alert alert-success">
+                    Başvurunuz onaylanmıştır!
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-danger">
+                    <h5>Başvuru Reddedildi</h5>
+                    <p>Sebep: @Model.AdminNotes</p>
+                </div>
+            }
+            <h5 class="card-title">Durum: @Model.Status</h5>
+            <p>Başvuru Tarihi: @Model.RequestDate.ToString("dd.MM.yyyy HH:mm")</p>
+        </div>
+    </div>
+</div>

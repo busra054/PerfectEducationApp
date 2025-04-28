@@ -1,0 +1,189 @@
+﻿@model WebApplication_Domain.Entities.Payment
+@{
+    ViewData["Title"] = "Paket Satın Al";
+    Layout = "_StudentLayout";
+}
+
+<div class="app-container">
+    <div class="top-box">
+        <p><span class="left-icon">&#x2196;</span>PAKET SATIN AL<span class="right-icon">&#xb7;&#xb7;&#xb7;</span></p>
+    </div>
+
+    <div class="middle-box">
+        <h1>@ViewBag.Package.Price.ToString("N2")<span>₺</span></h1>
+        <p>@ViewBag.Package.Name Paketi</p>
+        @if (ViewBag.Package.Description != null) // Paket açıklaması varsa göster
+        {
+            <div class="package-description">
+                @ViewBag.Package.Description
+            </div>
+        }
+    </div>
+
+    <form asp-action="Purchase" method="post">
+        <input type="hidden" asp-for="PackageId" value="@ViewBag.Package.Id" />
+        @Html.AntiForgeryToken()
+
+        <div class="card-details">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <!-- Kart Numarası (Formatlı Giriş İçin Güncellendi) -->
+            <div class="form-group card-num-field-group">
+                <label asp-for="CardNumber"></label>
+                <input asp-for="CardNumber" class="form-control card-num-field"
+                       placeholder="1234 5678 9012 3456"
+                       title="16 haneli kart numarası giriniz"
+                       data-card-number-input> <!-- Data attribute ekledik -->
+                <span asp-validation-for="CardNumber" class="text-danger"></span>
+            </div>
+
+            <!-- Son Kullanma Tarihi (Dinamik Yıl Kontrolü) -->
+            <div class="form-group date-field-group">
+                <label>Son Kullanma Tarihi</label>
+                <div class="d-flex">
+                    <input asp-for="ExpiryMonth" class="form-control date-field"
+                           placeholder="AA"
+                           min="1" max="12"
+                           title="Geçerli bir ay giriniz (1-12)">
+                    <span class="mx-2 align-self-center">/</span>
+                    <input asp-for="ExpiryYear" class="form-control date-field"
+                           placeholder="YYYY"
+                           min="@DateTime.Now.Year"
+                           max="@(DateTime.Now.Year + 10)"
+                           title="Geçerli bir yıl giriniz">
+                </div>
+                <span asp-validation-for="ExpiryMonth" class="text-danger"></span>
+                <span asp-validation-for="ExpiryYear" class="text-danger"></span>
+            </div>
+
+            <!-- CVC (Maskeli Giriş) -->
+            <div class="form-group cvc-field-group">
+                <label asp-for="CVC"></label>
+                <input asp-for="CVC" class="form-control cvc-field"
+                       placeholder="CVC"
+                       title="3 haneli güvenlik kodu">
+                <span asp-validation-for="CVC" class="text-danger"></span>
+            </div>
+
+            <!-- Kart Sahibi (Büyük Harf Desteği) -->
+            <div class="form-group name-field-group">
+                <label asp-for="CardHolderName"></label>
+                <input asp-for="CardHolderName" class="form-control name-field"
+                       placeholder="AD SOYAD"
+                       style="text-transform: uppercase">
+                <span asp-validation-for="CardHolderName" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="pay-btn">
+                <i class="fas fa-lock"></i> Ödemeyi Tamamla
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <!-- Kart Numarası Formatlama (Boşluk Desteği) -->
+    <script>
+        document.querySelector('[data-card-number-input]').addEventListener('input', function(e) {
+            this.value = this.value.replace(/\D/g, '') // Sadece rakam kalacak
+                .replace(/(\d{4})(?=\d)/g, '$1 '); // 4'te bir boşluk
+        });
+    </script>
+
+    <!-- Tarih Alanları İçin Anlık Kontrol -->
+    <script>
+        const yearInput = document.getElementById('ExpiryYear');
+        const monthInput = document.getElementById('ExpiryMonth');
+
+        // Yıl için dinamik kontrol
+        yearInput.addEventListener('input', function() {
+            const currentYear = new Date().getFullYear();
+            if (this.value < currentYear) {
+                this.setCustomValidity('Geçersiz yıl');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+
+        // Ay için kontrol
+        monthInput.addEventListener('input', function() {
+            if (this.value < 1 || this.value > 12) {
+                this.setCustomValidity('Geçersiz ay');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    </script>
+
+    <!-- Kart Sahibi Büyük Harf Dönüşümü -->
+    <script>
+        document.getElementById('CardHolderName').addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase();
+        });
+    </script>
+}
+
+<style>
+    .app-container {
+        max-width: 500px;
+        margin: 2rem auto;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+    }
+
+    .top-box {
+        background: #2c3e50;
+        color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .middle-box {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+        .middle-box h1 {
+            color: #27ae60;
+            font-size: 2.5rem;
+            margin: 0;
+        }
+
+    .package-description {
+        color: #7f8c8d;
+        margin-top: 1rem;
+    }
+
+    .card-details {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .pay-btn {
+        background: #27ae60;
+        color: white;
+        padding: 1rem;
+        width: 100%;
+        border: none;
+        border-radius: 6px;
+        font-size: 1.1rem;
+        margin-top: 1rem;
+        transition: background 0.3s;
+    }
+
+        .pay-btn:hover {
+            background: #219a52;
+        }
+
+        .pay-btn i {
+            margin-right: 8px;
+        }
+</style>

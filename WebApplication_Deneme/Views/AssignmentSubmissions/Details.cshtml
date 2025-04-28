@@ -1,0 +1,45 @@
+﻿@model WebApplication_Domain.Entities.AssignmentSubmission
+
+@{
+    ViewData["Title"] = "Details";
+    Layout = User.IsInRole("Öğretmen") ? "_TeacherLayout" :
+      User.IsInRole("Öğrenci") ? "_StudentLayout" :
+      User.IsInRole("Admin") ? "_AdminLayout" : "_Layout";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>AssignmentSubmission</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.FilePath)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.FilePath)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.SubmissionDate)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.SubmissionDate)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Assignment)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Assignment.AttachmentPath)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Student)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Student.Name)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

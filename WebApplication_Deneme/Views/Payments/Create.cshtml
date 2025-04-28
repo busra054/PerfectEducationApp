@@ -1,0 +1,12 @@
+﻿@model WebApplication_Domain.Entities.Payment
+
+<div class="form-group">
+    <label asp-for="PackageId" class="control-label"></label>
+    <select asp-for="PackageId" class="form-control" asp-items="ViewBag.PackageId"></select>
+</div>
+
+<!-- Create.cshtml ve Edit.cshtml -->
+<div class="form-group">
+    <label asp-for="StudentId" class="control-label">Öğrenci</label>
+    <select asp-for="StudentId" class="form-control" asp-items="ViewBag.StudentId"></select>
+</div>

@@ -1,0 +1,66 @@
+* {
+    font-family: 'Quicksand', sans-serif;
+}
+
+.form-container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 300px;
+}
+
+.form-h2 {
+    text-align: center;
+    color: #FF6D33;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: black;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+        font-size: 14px;
+    }
+
+        .form-group input:focus {
+            border-color: #394796;
+            outline: none;
+        }
+
+    .form-group .expiry-date {
+        display: flex;
+        justify-content: space-between;
+    }
+
+        .form-group .expiry-date input {
+            width: 48%;
+            box-sizing: border-box;
+        }
+
+            .form-group .expiry-date input:first-child {
+                margin-right: 4%;
+            }
+
+.submit-btn {
+    margin-top: 3%;
+}
+
+.submit-btn:hover {
+    background-color: #ec5b21;
+}
+
+.extra-form {
+    margin-top: 3%;
+}

@@ -1,0 +1,39 @@
+﻿@{
+    ViewData["Title"] = "Materyal Yükle";
+    Layout = "_TeacherLayout";
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0"><i class="fas fa-file-upload mr-2"></i>Materyal Yükle</h3>
+        </div>
+        <div class="card-body">
+            <form asp-action="UploadMaterial" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="courseId" value="@ViewBag.CourseId" />
+
+                <div class="form-group">
+                    <label class="font-weight-bold">Dosya Seçin</label>
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" name="file" id="fileInput" required>
+                        <label class="custom-file-label" for="fileInput">Dosya seç...</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success mt-3">
+                    <i class="fas fa-upload mr-2"></i>Yükle
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Dosya input etiketi güncelleme
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            var fileName = e.target.files[0].name;
+            document.querySelector('.custom-file-label').textContent = fileName;
+        });
+    </script>
+}

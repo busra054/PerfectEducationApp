@@ -1,0 +1,79 @@
+﻿@model WebApplication_Domain.Entities.AdminLoginModel
+@{
+    ViewData["Title"] = "Admin Login";
+    Layout = "";
+}
+
+<head>
+    <link rel="stylesheet" href="~/css/Create.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.10/css/all.css" integrity="sha384-+d0P83n9kaQMCwj8F4RJB66tzIwOKmrdb46+porD/OvrJ+37WqIM7UoBtwHO6Nlg" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet">
+</head>
+
+<body>
+    <div class="bgImg"></div>
+    <div class="content">
+        <div class="d-flex h-100 align-items-center justify-content-center">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 col-sm-6 ml-auto mr-auto">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="glowBox text-center">
+                                    <h4 class="title">Admin Login</h4>
+                                    <div class="socialMedia">
+                                        <a href="#" class="btn btn-just-icon btn-link">
+                                            <i class="fab fa-facebook-square"></i>
+                                        </a>
+                                        <a href="#" class="btn btn-just-icon btn-link">
+                                            <i class="fab fa-twitter"></i>
+                                        </a>
+                                        <a href="#" class="btn btn-just-icon btn-link">
+                                            <i class="fab fa-google-plus"></i>
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="desc text-center">
+                                    <p>Log in now to manage the system!</p>
+                                </div>
+
+                                <form asp-action="Login" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <div class="signUp">
+                                        <span>
+                                            <input type="text" class="form" placeholder="Admin Name" asp-for="AdminName" autocomplete="off" />
+                                            <span asp-validation-for="AdminName" class="text-danger"></span>
+                                        </span>
+                                        <span>
+                                            <input type="password" class="form" placeholder="Password" asp-for="AdminPassword" autocomplete="off" />
+                                            <span asp-validation-for="AdminPassword" class="text-danger"></span>
+                                        </span>
+                                    </div>
+
+                                    <div class="text-center">
+                                        <button type="submit" class="btn btn-primary btn-wd btn-lg">Log in</button>
+                                    </div>
+
+                                    <div class="text-center mt-3">
+                                        <p>
+                                            Forgot your password?
+                                            <a href="#" class="text-primary">Reset it</a>
+                                        </p>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

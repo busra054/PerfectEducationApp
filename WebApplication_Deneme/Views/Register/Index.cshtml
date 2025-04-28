@@ -1,0 +1,56 @@
+﻿@{
+    ViewData["Title"] = "Sign Up";
+    Layout = "_Layout";
+}
+
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap" rel="stylesheet">
+    <link href="~/css/Register.css" rel="stylesheet" />
+    <script src="~/js/validation.js"></script>
+</head>
+
+<body>
+    @if (ViewBag.Message != null)
+    {
+        <script>
+            alert('@ViewBag.Message');
+        </script>
+    }
+
+    <div class="main-container">
+        <h1>Sign Up</h1>
+        <form method="post" action="@Url.Action("Create", "Users")" onsubmit="return Validate(event)">
+            <div class="input-box">
+                <span class="icon"><i class='bx bxs-user'></i></span>
+                <input id="name" type="text" placeholder="Name" name="name" required />
+            </div>
+            <div class="input-box">
+                <span class="icon"><i class='bx bxs-envelope'></i></span>
+                <input id="email" placeholder="E-mail" name="email" type="email" required />
+            </div>
+            <div class="input-box">
+                <span class="icon"><i class='bx bxs-lock-alt'></i></span>
+                <input id="password" type="password" placeholder="Password" name="password" required />
+            </div>
+            <div class="input-box">
+                <span class="icon"><i class='bx bxs-lock-alt'></i></span>
+                <input id="confirmation" type="password" placeholder="Confirm Password" required />
+            </div>
+
+            <div class="role-select">
+                <label for="role">Role:</label>
+                <select id="role" name="role">
+                    <option value="Student">Student</option>
+                    <option value="Teacher">Teacher</option>
+                </select>
+            </div>
+
+            <button id="submit-btn" type="submit" class="btn-LogIn">Sign up</button>
+        </form>
+
+        <a href="@Url.Action("Index", "Login")">Eğer hesabınız varsa, giriş yapın</a>
+    </div>
+</body>

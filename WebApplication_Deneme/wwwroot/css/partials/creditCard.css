@@ -1,0 +1,35 @@
+﻿.card-preview {
+    background: linear-gradient(135deg, #8e44ad 0%, #d35400 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 20px;
+    width: 320px;
+    text-align: left;
+    position: relative;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+    .card-preview .card-number,
+    .card-preview .card-name,
+    .card-preview .expiry-date-preview,
+    .card-preview .cvv {
+        margin-bottom: 22px;
+        font-size: 18px;
+    }
+
+    .card-preview .cvv {
+        margin-bottom: 0;
+        font-size: 14px;
+    }
+
+    .card-preview .chip {
+        position: absolute;
+        width: 50px;
+        top: 20px;
+        right: 20px;
+        background: #f39c12;
+        margin-top: 30px;
+        margin-right: 15px;
+        height: 30px;
+        border-radius: 5px;
+    }

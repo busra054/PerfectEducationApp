@@ -1,0 +1,159 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Öğretmen Paneli</title>
+
+    <!-- Stil Dosyaları -->
+    <link href="~/Admin/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <link href="~/Admin/css/sb-admin-2.min.css" rel="stylesheet">
+    @RenderSection("Styles", required: false) <!-- BU SATIR EKLENDİ -->
+
+</head>
+<body id="page-top">
+    <div id="wrapper">
+        <!-- Sidebar -->
+        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+            <!-- Sidebar - Brand -->
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
+                <div class="sidebar-brand-icon rotate-n-15">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div class="sidebar-brand-text mx-3">Öğretmen Paneli</div>
+            </a>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider my-0">
+
+            <li class="nav-item">
+                <a class="nav-link" asp-controller="Teachers" asp-action="MyCourses">
+                    <i class="fas fa-book"></i>
+                    <span>Kurs Yönetimi</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/Assignments">
+                    <i class="fas fa-tasks"></i>
+                    <span>Ödev Yönetimi</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-controller="Teachers" asp-action="ViewSubmissions" asp-route-assignmentId="1">
+                    <i class="fas fa-file-upload"></i>
+                    <span>Ödev Değerlendirme</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="/Students/Index">
+                    <i class="fas fa-users"></i>
+                    <span>Öğrencilerim</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/Appointments/Index">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Randevular</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/Messages/Index">
+                    <i class="fas fa-envelope"></i>
+                    <span>Mesajlar</span>
+                    <span class="badge badge-danger" id="messageBadge">0</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider d-none d-md-block">
+
+            <!-- Sidebar Toggler -->
+            <div class="text-center d-none d-md-inline">
+                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+            </div>
+        </ul>
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+            <!-- Main Content -->
+            <div id="content">
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                    <!-- Topbar Navbar -->
+                    <ul class="navbar-nav ml-auto">
+                        <!-- Mesaj Bildirimleri -->
+                        <li class="nav-item dropdown no-arrow mx-1">
+                            <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button" data-toggle="dropdown">
+                                <i class="fas fa-envelope fa-fw"></i>
+                                <span class="badge badge-danger badge-counter">3</span>
+                            </a>
+                        </li>
+
+                        <!-- Profil Bilgileri -->
+                        <li class="nav-item dropdown no-arrow">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown">
+                                <span class="mr-2 d-none d-lg-inline text-gray-600">@User.Identity.Name</span>
+                                <img class="img-profile rounded-circle" src="~/img/undraw_profile.svg">
+                            </a>
+                            <!-- Dropdown - Profil -->
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in">
+                                <a class="dropdown-item" href="/Profile/Index">
+                                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Profil
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Çıkış Yap
+                                </a>
+                            </div>
+                        </li>
+                    </ul>
+                </nav>
+
+                <!-- İçerik -->
+                <div class="container-fluid">
+                    @RenderBody()
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; Eğitim Platformu @DateTime.Now.Year</span>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Logout Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Çıkış Yap</h5>
+                    <button class="close" type="button" data-dismiss="modal">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">Çıkış yapmak istediğinizden emin misiniz?</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">İptal</button>
+                    <a class="btn btn-primary" href="/Account/Logout">Çıkış Yap</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scriptler -->
+    <script src="~/Admin/vendor/jquery/jquery.min.js"></script>
+    <script src="~/Admin/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/Admin/vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="~/Admin/js/sb-admin-2.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

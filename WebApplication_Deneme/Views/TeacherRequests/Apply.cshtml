@@ -1,0 +1,143 @@
+﻿@model WebApplication_Domain.Entities.TeacherRequest
+
+@{
+    ViewData["Title"] = "Öğretmen Başvurusu";
+    Layout = "";
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+@foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+{
+    <div class="alert alert-danger">
+        @error.ErrorMessage
+    </div>
+}
+@if (Model.User == null)
+{
+    <div class="alert alert-danger">Kullanıcı bilgileri eksik! Lütfen tekrar deneyin.</div>
+}
+
+<link rel="stylesheet" href="~/css/Create.css" asp-append-version="true" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.10/css/all.css" integrity="sha384-+d0P83n9kaQMCwj8F4RJB66tzIwOKmrdb46+porD/OvrJ+37WqIM7UoBtwHO6Nlg" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet">
+
+<body>
+    <div class="bgImg"></div>
+    <div class="content">
+        <div class="d-flex h-100 align-items-center justify-content-center">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-8 col-lg-6 ml-auto mr-auto">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="glowBox">
+                                    <h4 class="title">Öğretmen Başvuru Formu</h4>
+                                </div>
+
+                                <div class="desc text-center mb-4">
+                                    <p>Öğretmen olarak kayıt olmak için lütfen aşağıdaki bilgileri doldurun</p>
+                                </div>
+
+                                <form asp-action="Apply" enctype="multipart/form-data"> 
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" asp-for="UserId" />                                    
+                                    <div class="form-group">
+                                        <label asp-for="Biography"></label>
+                                        <textarea asp-for="Biography" class="form-control" rows="5"
+                                                  placeholder="Kendiniz hakkında bilgilerinizi yazın"></textarea>
+                                        <span asp-validation-for="Biography" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label asp-for="ExperienceYears"></label>
+                                        <input asp-for="ExperienceYears" type="number" class="form-control"
+                                               placeholder="Yıl olarak deneyim süreniz" min="0" max="50" />
+                                        <span asp-validation-for="ExperienceYears" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Sertifika Yükle (PDF)</label>
+                                        <div class="form-group">
+                                            <input type="file" name="certificationFile" class="form-control" required />
+                                            <span class="text-danger">@Html.ValidationMessage("certificationFile")</span>
+                                        </div>
+                                        <small class="form-text text-muted">Lütfen PDF formatında dosya yükleyin</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label asp-for="BranchId" class="control-label">Branş</label>
+                                        <select asp-for="BranchId" class="form-control" asp-items="ViewBag.Branches">
+                                            <option value="">-- Branş Seçin --</option>
+                                        </select>
+                                        <span asp-validation-for="BranchId" class="text-danger"></span>
+                                    </div>
+                                    <div class="text-center mt-4">
+                                        <button type="submit" class="btn btn-primary btn-block btn-lg">
+                                            <i class="fas fa-paper-plane mr-2"></i>Başvuruyu Gönder
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+@section Scripts {
+    <script>
+        function submitForm() {
+            const form = document.querySelector('form');
+            const formData = new FormData(form);
+            const xhr = new XMLHttpRequest();
+            const progressBar = document.querySelector('.progress-bar');
+            const progressContainer = document.querySelector('.progress');
+
+            progressContainer.style.display = 'block';
+
+            xhr.upload.addEventListener('progress', function (e) {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    progressBar.style.width = percent + '%';
+                    progressBar.textContent = percent + '%';
+                }
+            });
+
+            xhr.open('POST', form.action, true);
+            xhr.setRequestHeader('RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
+
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        window.location.href = '@Url.Action("PendingApproval", "TeacherRequests")';
+                    } else {
+                        alert('Hata: ' + response.error);
+                    }
+                } else {
+                    alert('Hata: ' + xhr.statusText);
+                }
+            };
+
+            xhr.onerror = function () {
+                alert('Yükleme sırasında bir hata oluştu.');
+            };
+
+            xhr.send(formData);
+        }
+    </script>
+}

@@ -1,0 +1,84 @@
+﻿@model IEnumerable<WebApplication_Domain.Entities.Teacher>
+@using System.IO
+
+@{
+    ViewData["Title"] = "Paket Listesi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Paket Listesi</h1>
+<div class="row">
+    @foreach (var teacher in Model)
+    {
+        <div class="col-md-4">
+            @* Her satırda 3 kart olacak şekilde ayarlandı. Ekran boyutuna göre ayarlanabilir. *@
+            <div class="card mb-4 box-shadow">
+                @{
+                    string[] validExtensions = new[] { ".jpg", ".jpeg", ".png" };
+                    string imageFileName = teacher.User.Name.ToString();
+                    string imageUrl = null;
+
+                    // Geçerli dosya uzantılarını kontrol et
+                    foreach (var ext in validExtensions)
+                    {
+                        string imagePath = $"/img/{imageFileName}{ext}";
+                        string physicalPath = Directory.GetCurrentDirectory() + "/wwwroot/img/" + imageFileName + ext;
+
+                        if (System.IO.File.Exists(physicalPath))
+                        {
+                            imageUrl = Url.Content(imagePath);
+                            break;
+                        }
+                    }
+
+                    // Eğer resim bulunamazsa varsayılan resmi kullan
+                    if (imageUrl == null)
+                    {
+                        imageUrl = Url.Content("~/img/Sınıf.jpg");
+                    }
+                }
+
+                <img class="card-img-top" src="@imageUrl" alt="@teacher.User.Name" style="max-height: 200px; object-fit: cover;">
+                <div class="card-body">
+                    <h4 class="card-title">@teacher.User.Name</h4>
+                    <p class="card-text">@teacher.Certifications</p>
+                    <p class="card-text">@teacher.Biography</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="btn-group">
+                            <a asp-controller="Teachers" asp-action="Index" asp-route-id="@teacher.Id" class="btn btn-sm btn-outline-secondary">Detaylar</a>
+                            <a asp-controller="Teachers" asp-action="Index" asp-route-id="@teacher.Id" class="btn btn-sm btn-primary">Yorum Yap</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .card {
+        border: 1px solid #eee; /* Daha hafif bir çerçeve */
+        border-radius: 8px; /* Köşeleri yuvarlaklaştır */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Hafif gölge */
+        transition: transform 0.2s; /* Hover efekti için geçiş */
+    }
+
+        .card:hover {
+            transform: translateY(-5px); /* Hoverda yukarı kaydırma */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Daha belirgin gölge */
+        }
+
+    .card-title {
+        font-weight: 600; /* Başlığı kalınlaştır */
+        margin-bottom: 0.75rem;
+    }
+
+    .card-text {
+        color: #555; /* Açıklama metnini koyulaştır */
+        font-size: 0.9rem;
+    }
+
+    .text-muted {
+        font-size: 0.8rem;
+    }
+</style>

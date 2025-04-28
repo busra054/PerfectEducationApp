@@ -1,0 +1,98 @@
+﻿@model IEnumerable<Course>
+@{
+    ViewData["Title"] = "Kurslarım";
+    Layout = User.IsInRole("Öğretmen") ? "_TeacherLayout" :
+          User.IsInRole("Öğrenci") ? "_StudentLayout" :
+          User.IsInRole("Admin") ? "_AdminLayout" : "_Layout";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-4 text-primary">Kurslarım</h1>
+        @if (User.IsInRole("Öğretmen") || User.IsInRole("Admin"))
+        {
+            <a asp-action="Create" asp-controller="Courses" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus-circle mr-2"></i>Yeni Kurs Oluştur
+            </a>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info shadow">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle fa-2x mr-3"></i>
+                <div>
+                    <h4 class="alert-heading">Henüz kursunuz bulunmuyor!</h4>
+                    <p class="mb-0">Yeni bir kurs oluşturarak eğitim içeriklerinizi paylaşmaya başlayabilirsiniz.</p>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var course in Model)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow border-0">
+                        <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0 font-weight-bold">@course.Name</h5>
+                            <span class="badge badge-light text-primary">@course.Package?.Name</span>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text text-muted">@(course.Description.Length > 100 ? course.Description.Substring(0, 100) + "..." : course.Description)</p>
+                            <hr>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-book-open mr-1 text-info"></i>
+                                    <span class="text-muted small">@course.CourseMaterials.Count materyal</span>
+                                </div>
+                                <div>
+                                    <i class="fas fa-user-tie mr-1 text-secondary"></i>
+                                    <span class="text-muted small">@course.Teacher?.User?.Name</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-top-0">
+                            <div class="d-flex justify-content-between">
+                                <a asp-action="ManageCourse" asp-route-id="@course.Id"
+                                   class="btn btn-sm btn-outline-primary flex-grow-1 mr-2">
+                                    <i class="fas fa-cog mr-1"></i> Yönet
+                                </a>
+                                <a asp-controller="Teachers" asp-action="UploadMaterial"
+                                   asp-route-courseId="@course.Id"
+                                   class="btn btn-sm btn-outline-success flex-grow-1">
+                                    <i class="fas fa-plus mr-1"></i> Materyal
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Styles {
+    <style>
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+            .card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            }
+
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        }
+
+        .card-header {
+            border-bottom: none;
+        }
+    </style>
+}

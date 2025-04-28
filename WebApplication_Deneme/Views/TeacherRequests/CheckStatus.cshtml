@@ -1,0 +1,21 @@
+﻿@model WebApplication_Domain.Entities.TeacherRequest
+
+@{
+    ViewData["Title"] = "Başvuru Durumu";
+}
+
+<div class="container mt-5">
+    @if (Model == null)
+    {
+        <div class="alert alert-info">
+            <h5>Henüz başvuru yapmamışsınız</h5>
+            <a asp-action="Apply" asp-route-userId="@ViewBag.UserId" class="btn btn-primary">
+                Başvuru Yap
+            </a>
+        </div>
+    }
+    else
+    {
+        <partial name="PendingApproval" model="Model" />
+    }
+</div>

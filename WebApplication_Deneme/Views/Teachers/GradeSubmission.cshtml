@@ -1,0 +1,65 @@
+﻿@model AssignmentSubmission
+@{
+    ViewData["Title"] = "Ödev Değerlendirme";
+    Layout = "_TeacherLayout";
+}
+
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">@ViewData["Title"]</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 border-right">
+                    <dl class="row">
+                        <dt class="col-sm-5">Öğrenci:</dt>
+                        <dd class="col-sm-7">@Model.Student.User.Name</dd>
+
+                        <dt class="col-sm-5">Gönderim Tarihi:</dt>
+                        <dd class="col-sm-7">@Model.SubmissionDate.ToString("dd MMMM yyyy HH:mm")</dd>
+
+                        <dt class="col-sm-5">Dosya:</dt>
+                        <dd class="col-sm-7">
+                            <a href="~/submissions/@Model.FilePath" class="btn btn-sm btn-primary">
+                                <i class="fas fa-download"></i> İndir
+                            </a>
+                        </dd>
+                    </dl>
+                </div>
+                <div class="col-md-8">
+                    <form asp-action="GradeSubmission">
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="form-group">
+                            <label asp-for="Grade">Not (0-100)</label>
+                            <input asp-for="Grade" class="form-control"
+                                   min="0" max="100"
+                                   placeholder="Lütfen 0-100 arası değer girin">
+                            <span asp-validation-for="Grade" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Feedback">Geribildirim</label>
+                            <textarea asp-for="Feedback" class="form-control" rows="5"
+                                      placeholder="Öğrenci için açıklayıcı geribildirim..."></textarea>
+                            <span asp-validation-for="Feedback" class="text-danger"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Değerlendirmeyi Kaydet
+                        </button>
+                        <a asp-action="ViewSubmissions" asp-route-assignmentId="@Model.AssignmentId"
+                           class="btn btn-secondary">İptal</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

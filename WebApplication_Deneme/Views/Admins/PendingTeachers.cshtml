@@ -1,0 +1,88 @@
+﻿@model IEnumerable<WebApplication_Domain.Entities.TeacherRequest>
+@{
+    ViewData["Title"] = "Pending Teachers";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+<table class="table table-hover">
+    <thead class="thead-dark">
+        <tr>
+            <th>Kullanıcı</th>
+            <th>Branş</th> <!-- Yeni eklendi -->
+            <th>Deneyim</th>
+            <th>Hakkında</th>
+            <th>Başvuru Tarihi</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.User.Name</td>
+                <td>@item.Branch?.Name</td> <!-- Branş bilgisini göster -->
+                <td>@item.ExperienceYears yıl</td>
+                <td>@item.Biography</td>
+                <td>@item.RequestDate.ToString("dd.MM.yyyy")</td>
+                <td>
+                    <!-- Mevcut butonlar -->
+                    <form asp-action="ApproveTeacher" method="post" class="d-inline">
+                        <input type="hidden" name="requestId" value="@item.Id" />
+                        <button type="submit" class="btn btn-success btn-sm">
+                            Onayla
+                        </button>
+                    </form>
+
+                    <button class="btn btn-danger btn-sm"
+                            data-toggle="modal"
+                            data-target="#rejectModal"
+                            data-requestid="@item.Id">
+                        Reddet
+                    </button>
+
+                    <a href="@Url.Action("Details", new { id = item.Id })"
+                       class="btn btn-info btn-sm">
+                        Detay
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Reddetme Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="RejectTeacher" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Başvuru Reddet</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="requestId" id="rejectRequestId" />
+                    <div class="form-group">
+                        <label>Reddetme Sebebi</label>
+                        <textarea name="adminNotes" class="form-control" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">Reddet</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">İptal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Reddetme modalı için script
+        $('#rejectModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var requestId = button.data('requestid');
+            $("#rejectRequestId").val(requestId);
+        });
+    </script>
+}

@@ -1,0 +1,64 @@
+﻿@model List<AssignmentSubmission>
+@{
+    ViewData["Title"] = "Ödev Gönderimleri";
+    Layout = "_TeacherLayout";
+}
+
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                @ViewBag.AssignmentTitle - Gönderimler
+                <span class="badge badge-secondary ml-2">@Model.Count Kayıt</span>
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Öğrenci</th>
+                            <th>Gönderim Tarihi</th>
+                            <th>Dosya</th>
+                            <th>Not</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var submission in Model)
+                        {
+                            <tr>
+                                <td>@submission.Student?.User?.Name ?? "Bilinmiyor"</td>
+                                <td>@submission.SubmissionDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <a href="~/submissions/@submission.FilePath"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-download"></i> İndir
+                                    </a>
+                                </td>
+                                <td>
+                                    @if (submission.Grade.HasValue)
+                                    {
+                                        <span class="badge @(submission.Grade >= 50 ? "badge-success" : "badge-danger")">
+                                            @submission.Grade/100
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-warning">Bekliyor</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-action="GradeSubmission" asp-route-id="@submission.Id"
+                                       class="btn btn-sm btn-info">
+                                        <i class="fas fa-edit"></i> Değerlendir
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
