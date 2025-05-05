@@ -96,6 +96,17 @@ namespace WebApplication_Deneme.Controllers
             return RedirectToAction("ViewSubmissions", new { assignmentId = submission.AssignmentId });
         }
 
+        // TeachersController'a ekleyin
+        public async Task<IActionResult> AssignmentList()
+        {
+            var teacherId = await GetCurrentTeacherId();
+            var assignments = await _context.Assignments
+                .Include(a => a.Course)
+                .Where(a => a.Course.TeacherId == teacherId)
+                .ToListAsync();
+
+            return View(assignments);
+        }
         public async Task<IActionResult> MyCourses()
         {
             var teacherId = await GetCurrentTeacherId();

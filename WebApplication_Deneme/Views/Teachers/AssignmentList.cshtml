@@ -1,0 +1,43 @@
+﻿@model List<Assignment>
+@{
+    ViewData["Title"] = "Ödevlerim";
+    Layout = "_TeacherLayout";
+}
+
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Ödevler</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Ödev Adı</th>
+                            <th>Kurs</th>
+                            <th>Son Teslim Tarihi</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var assignment in Model)
+                        {
+                            <tr>
+                                <td>@assignment.Title</td>
+                                <td>@assignment.Course?.Name</td>
+                                <td>@assignment.DueDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <a asp-action="ViewSubmissions" asp-route-assignmentId="@assignment.Id"
+                                       class="btn btn-primary btn-sm">
+                                        Gönderimleri Görüntüle
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
