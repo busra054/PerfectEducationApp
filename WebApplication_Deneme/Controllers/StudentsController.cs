@@ -28,6 +28,81 @@ namespace WebApplication_Deneme.Controllers
             _env = env;
         }
 
+        // GET: /Students/MyTeachers
+        public async Task<IActionResult> MyTeachers()
+        {
+            var userId = int.Parse(_userManager.GetUserId(User));
+            var student = await _context.Students
+                .Include(s => s.Enrollments)
+                    .ThenInclude(e => e.Course)
+                        .ThenInclude(c => c.Teacher)
+                            .ThenInclude(t => t.User)
+                .FirstOrDefaultAsync(s => s.UserId == userId);
+            if (student == null) return Forbid();
+
+            // Distinct öğretmen listesi
+            var teachers = student.Enrollments
+                .Select(e => e.Course.Teacher)
+                .Distinct()
+                .ToList();
+
+            // Her öğretmenin, bu öğrenciyle ilişkili derslerini de bir arada gönderelim:
+            var vm = teachers.Select(t => new MyTeacherViewModel
+            {
+                TeacherId = t.Id,
+                Name = t.User.Name,
+                Biography = t.Biography,
+                Courses = student.Enrollments
+                    .Where(e => e.Course.TeacherId == t.Id)
+                    .Select(e => e.Course)
+                    .ToList()
+            }).ToList();
+
+            return View(vm);
+        }
+
+
+        // Öğrencinin kendi randevularını listeler
+        public async Task<IActionResult> MyAppointments()
+        {
+            var userId = int.Parse(_userManager.GetUserId(User));
+            var student = await _context.Students
+                .FirstOrDefaultAsync(s => s.UserId == userId);
+            if (student == null) return Forbid();
+
+            var list = await _context.Appointments
+                .Include(a => a.Package)
+                .Include(a => a.Course)
+                .Include(a => a.Teacher).ThenInclude(t => t.User)
+                .Where(a => a.StudentId == student.Id)
+                .OrderBy(a => a.Date)
+                .ToListAsync();
+
+            return View(list);
+        }
+
+        // Öğrenci bir randevuya tıkladığında Zoom linkine yönlendirir
+        public async Task<IActionResult> Join(int id)
+        {
+            var userId = int.Parse(_userManager.GetUserId(User));
+            var student = await _context.Students.FirstOrDefaultAsync(s => s.UserId == userId);
+            if (student == null) return Forbid();
+
+            var appt = await _context.Appointments.FindAsync(id);
+            if (appt == null || appt.StudentId != student.Id)
+                return Forbid();
+
+            if (string.IsNullOrWhiteSpace(appt.ZoomLink))
+            {
+                TempData["Error"] = "Zoom linki henüz paylaşılmadı.";
+                return RedirectToAction(nameof(MyAppointments));
+            }
+
+            // Harici URL’e yönlendir
+            return Redirect(appt.ZoomLink);
+        }
+
+
         [HttpGet]
         public async Task<IActionResult> ViewSubmission(int id)
         {

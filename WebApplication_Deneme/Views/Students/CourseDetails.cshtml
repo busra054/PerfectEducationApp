@@ -36,8 +36,10 @@
                                     @foreach (var material in Model.CourseMaterials)
                                     {
                                         <li class="list-group-item">
-                                            <a href="/Materials/Download/@material.Id"
-                                               class="text-decoration-none text-dark">
+                                                    <a asp-controller="CourseMaterials"
+                                                       asp-action="Preview"
+                                                         asp-route-id="@material.Id"
+                                                class="text-decoration-none text-dark">
                                                 <i class="fas fa-download mr-2"></i>
                                                 @material.FilePath
                                             </a>

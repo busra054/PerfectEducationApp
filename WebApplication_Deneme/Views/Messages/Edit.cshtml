@@ -1,52 +1,53 @@
 ﻿@model WebApplication_Domain.Entities.Message
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Mesaj Düzenle";
     Layout = User.IsInRole("Öğretmen") ? "_TeacherLayout" :
-         User.IsInRole("Öğrenci") ? "_StudentLayout" :
-         User.IsInRole("Admin") ? "_AdminLayout" : "_Layout";
+             User.IsInRole("Öğrenci") ? "_StudentLayout" :
+             User.IsInRole("Admin") ? "_AdminLayout" : "_Layout";
 }
 
-<h1>Edit</h1>
+<h1>Mesaj Düzenle</h1>
 
-<h4>Message</h4>
 <hr />
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
+    <div class="col-md-6">
+        <form asp-action="Edit" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="SenderId" class="control-label"></label>
-                <select asp-for="SenderId" class="form-control" asp-items="ViewBag.SenderId"></select>
+
+            <div class="mb-3">
+                <label asp-for="SenderId" class="form-label"></label>
+                <select asp-for="SenderId" class="form-select" asp-items="ViewBag.SenderList"></select>
                 <span asp-validation-for="SenderId" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="ReceiverId" class="control-label"></label>
-                <select asp-for="ReceiverId" class="form-control" asp-items="ViewBag.ReceiverId"></select>
+
+            <div class="mb-3">
+                <label asp-for="ReceiverId" class="form-label"></label>
+                <select asp-for="ReceiverId" class="form-select" asp-items="ViewBag.ReceiverList"></select>
                 <span asp-validation-for="ReceiverId" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="MessageText" class="control-label"></label>
-                <input asp-for="MessageText" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="MessageText" class="form-label"></label>
+                <textarea asp-for="MessageText" class="form-control" rows="4"></textarea>
                 <span asp-validation-for="MessageText" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="SentDate" class="control-label"></label>
-                <input asp-for="SentDate" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="SentDate" class="form-label"></label>
+                <input asp-for="SentDate" class="form-control" type="datetime-local" />
                 <span asp-validation-for="SentDate" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
+
+            <button type="submit" class="btn btn-primary">Kaydet</button>
+            <a asp-action="Index" class="btn btn-secondary ms-2">Geri</a>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

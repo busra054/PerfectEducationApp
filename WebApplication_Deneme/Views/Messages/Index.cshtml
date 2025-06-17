@@ -1,56 +1,53 @@
-﻿@model IEnumerable<WebApplication_Domain.Entities.Message>
-
+﻿@model List<WebApplication_Domain.Entities.ConversationViewModel>
 @{
-    ViewData["Title"] = "Index";
-    Layout = User.IsInRole("Öğretmen") ? "_TeacherLayout" :
-         User.IsInRole("Öğrenci") ? "_StudentLayout" :
-         User.IsInRole("Admin") ? "_AdminLayout" : "_Layout";
+    Layout = User.IsInRole("Öğretmen") ? "_TeacherLayout" : "_StudentLayout";
+    var meId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value);
 }
 
-<h1>Index</h1>
+<h2>Mesajlarım</h2>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.MessageText)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.SentDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Sender)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Receiver)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.MessageText)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.SentDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Sender.Id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Receiver.Id)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+<div class="row mb-3">
+    <div class="col-md-6 d-flex">
+        <form asp-action="Chat" method="get" class="me-2">
+            <select name="otherUserId" asp-items="ViewBag.AvailableUsers" class="form-select">
+                <option value="">— Kişi seç —</option>
+            </select>
+            <button class="btn btn-primary ms-2">Yeni Sohbet Başlat</button>
+        </form>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        Henüz sohbetiniz yok.
+    </div>
 }
-    </tbody>
-</table>
+else
+{
+    <ul class="list-group">
+        @foreach (var convo in Model)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>@convo.Partner.Name</strong><br />
+                    <small class="text-muted">
+                        @(convo.LastMessage.SenderId == meId ? "Sen: " : convo.Partner.Name + ": ")
+                        @convo.LastMessage.MessageText.Substring(0, Math.Min(30, convo.LastMessage.MessageText.Length))
+                    </small>
+                </div>
+                <div>
+                    <a asp-action="Chat" asp-route-otherUserId="@convo.Partner.Id"
+                       class="btn btn-sm btn-outline-primary">Aç</a>
+                    <form asp-action="DeleteConversation" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="otherUserId" value="@convo.Partner.Id" />
+                        <button class="btn btn-sm btn-outline-danger" title="Sohbeti sil">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </form>
+                </div>
+            </li>
+        }
+    </ul>
+}

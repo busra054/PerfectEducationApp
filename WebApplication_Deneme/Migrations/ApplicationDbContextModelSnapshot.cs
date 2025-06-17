@@ -157,11 +157,11 @@ namespace WebApplication_Deneme.Migrations
 
             modelBuilder.Entity("WebApplication_Domain.Entities.Admin", b =>
                 {
-                    b.Property<int>("AdminId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AdminId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
@@ -182,9 +182,6 @@ namespace WebApplication_Deneme.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
-
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -216,7 +213,7 @@ namespace WebApplication_Deneme.Migrations
                     b.Property<string>("UserName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("AdminId");
+                    b.HasKey("Id");
 
                     b.ToTable("Admins");
                 });
@@ -229,8 +226,14 @@ namespace WebApplication_Deneme.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("CourseId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("PackageId")
+                        .HasColumnType("int");
 
                     b.Property<int>("StudentId")
                         .HasColumnType("int");
@@ -248,7 +251,15 @@ namespace WebApplication_Deneme.Migrations
                     b.Property<int?>("UserId1")
                         .HasColumnType("int");
 
+                    b.Property<string>("ZoomLink")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("PackageId");
 
                     b.HasIndex("StudentId");
 
@@ -520,6 +531,15 @@ namespace WebApplication_Deneme.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("IsDeletedByReceiver")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeletedBySender")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
                     b.Property<string>("MessageText")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -550,13 +570,37 @@ namespace WebApplication_Deneme.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("BannerText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CoverImagePath")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Description")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("DiscountRate")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Feature1")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Feature2")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Feature3")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Feature4")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("OriginalPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -574,65 +618,137 @@ namespace WebApplication_Deneme.Migrations
                         new
                         {
                             Id = 1,
-                            Description = "TYT genel tüm dersler temelden gelişmişe adım adım Eğitim",
+                            BannerText = "Her Şey Dahil",
+                            CoverImagePath = "/img/1.jpg",
+                            Description = "TYT ve AYT tüm konuları kapsayan, eğitim, canlı yayınlar ve deneme sınavlarıyla eksiksiz hazırlık.",
+                            DiscountRate = 30,
+                            Feature1 = "100 Soru Sorma Hakkı",
+                            Feature2 = "PDF Özet Notlar",
+                            Feature3 = "Videolu Deneme Sınavları",
+                            Feature4 = "Yapay Zeka Asistanı",
                             Name = "TYT-Eğitimi Full Paket",
-                            Price = 14000.0m
+                            OriginalPrice = 35000.00m,
+                            Price = 24500.00m
                         },
                         new
                         {
                             Id = 2,
-                            Description = "AYT temelden gelişmişe Matematik ,Fizik, Kimya, Biyoloji Dersleri Eğitimi",
+                            BannerText = "Kampanyalı",
+                            CoverImagePath = "/img/2.jpg",
+                            Description = "TYT konularına hızlı tekrar ve yoğun soru çözümü içeren pratik paket.",
+                            DiscountRate = 20,
+                            Feature1 = "50 Canlı Soru Saati",
+                            Feature2 = "40 Test Denemesi",
+                            Feature3 = "PDF Özet Notlar",
+                            Feature4 = "Yapay Zeka Asistanı",
                             Name = "AYT-Sayısal Eğitimi Full Paket",
-                            Price = 18000.0m
+                            OriginalPrice = 18000.00m,
+                            Price = 14400.00m
                         },
                         new
                         {
                             Id = 3,
-                            Description = "AYT temelden gelişmişe Matematik ,Tarih, Coğrafya, Edebiyat Dersleri eğitimi",
+                            BannerText = "İndirimli",
+                            CoverImagePath = "/img/3.jpg",
+                            Description = "Matematik, Fizik, Kimya ve Biyoloji konularını içeren kapsamlı sayısal paket.",
+                            DiscountRate = 25,
+                            Feature1 = "80 Deneme Sınavı",
+                            Feature2 = "Canlı Soru Çözümü",
+                            Feature3 = "PDF Özet Notlar",
+                            Feature4 = "Yapay Zeka Asistanı",
                             Name = "AYT-Eşit Ağırlık Eğitimi",
-                            Price = 14000.0m
+                            OriginalPrice = 30000.00m,
+                            Price = 22500.00m
                         },
                         new
                         {
                             Id = 4,
-                            Description = "KPSS temelden gelişmişe full hazırlık paketi dersleri",
-                            Name = "KPSS Kapsamlı Eğitimi ",
-                            Price = 23000.0m
+                            BannerText = "Kampanyalı",
+                            CoverImagePath = "/img/4.jpg",
+                            Description = "Matematik, Edebiyat, Tarih ve Coğrafya derslerini kapsayan eşit ağırlık paketi.",
+                            DiscountRate = 25,
+                            Feature1 = "75 Deneme Sınavı",
+                            Feature2 = "Video Çözümler",
+                            Feature3 = "PDF Özet Notlar",
+                            Feature4 = "Yapay Zeka Asistanı",
+                            Name = "KPSS Kapsamlı Eğitimi",
+                            OriginalPrice = 28000.00m,
+                            Price = 21000.00m
                         },
                         new
                         {
                             Id = 5,
-                            Description = "DGS temelden gelişmişe full hazırlık paketi dersleri",
+                            BannerText = "Her Şey Dahil",
+                            CoverImagePath = "/img/5.jpg",
+                            Description = "Genel Yetenek ve Genel Kültür derslerinden oluşan KPSS hazırlık paketi.",
+                            DiscountRate = 28,
+                            Feature1 = "60 Deneme Sınavı",
+                            Feature2 = "Video Anlatım",
+                            Feature3 = "PDF Özet Notlar",
+                            Feature4 = "Yapay Zeka Asistanı",
                             Name = "DGS Kapsamlı Eğitimi",
-                            Price = 13000.0m
+                            OriginalPrice = 25000.00m,
+                            Price = 18000.00m
                         },
                         new
                         {
                             Id = 6,
-                            Description = "İngilizce temelden gelişmişe okuma,yazma,konuşma ve dinleme becerileri geliştirme dersleri",
+                            BannerText = "Kampanyalı",
+                            CoverImagePath = "/img/6.jpg",
+                            Description = "Dikey Geçiş Sınavı için tüm başlıkları kapsayan hazırlık paketi.",
+                            DiscountRate = 20,
+                            Feature1 = "50 Deneme Sınavı",
+                            Feature2 = "PDF Özet Notlar",
+                            Feature3 = "Video Çözümler",
+                            Feature4 = "Yapay Zeka Asistanı",
                             Name = "İngilizce A1-A2 Temel Seviye Eğitim",
-                            Price = 15000.0m
+                            OriginalPrice = 20000.00m,
+                            Price = 16000.00m
                         },
                         new
                         {
                             Id = 7,
-                            Description = "İspanyolca temelden gelişmişe okuma,yazma,konuşma ve dinleme becerileri geliştirme dersleri",
+                            BannerText = "İndirimli",
+                            CoverImagePath = "/img/7.jpg",
+                            Description = "Okuma, yazma, konuşma ve dinleme pratiği ile A1-A2 seviyesine hazırlık.",
+                            DiscountRate = 15,
+                            Feature1 = "Canlı Konuşma Seansları",
+                            Feature2 = "PDF Eğitim Materyalleri",
+                            Feature3 = "Kısa Video Dersler",
+                            Feature4 = "Yapay Zeka Asistanı",
                             Name = "İspanyolca A1-A2 Temel Seviye Eğitim",
-                            Price = 12000.0m
+                            OriginalPrice = 15000.00m,
+                            Price = 12750.00m
                         },
                         new
                         {
                             Id = 8,
-                            Description = "Korece temelden gelişmişe okuma,yazma,konuşma ve dinleme becerileri geliştirme dersleri",
+                            BannerText = "Kampanyalı",
+                            CoverImagePath = "/img/8.jpg",
+                            Description = "Temel Korece becerilerini geliştiren A1-A2 paketi.",
+                            DiscountRate = 15,
+                            Feature1 = "Konuşma Kulübü",
+                            Feature2 = "PDF Notlar",
+                            Feature3 = "Video Dersler",
+                            Feature4 = "Yapay Zeka Asistanı",
                             Name = "Korece A1-A2 Temel Seviye Eğitim",
-                            Price = 16000.0m
+                            OriginalPrice = 14000.00m,
+                            Price = 11900.00m
                         },
                         new
                         {
                             Id = 9,
-                            Description = "Almanca temelden gelişmişe okuma,yazma,konuşma ve dinleme becerileri geliştirme dersleri",
+                            BannerText = "Her Şey Dahil",
+                            CoverImagePath = "/img/9.jpg",
+                            Description = "İlk seviye Korece pratik ve temel dil bilgisi paketi.",
+                            DiscountRate = 15,
+                            Feature1 = "Karakter Tanıma Dersleri",
+                            Feature2 = "PDF Eğitim Seti",
+                            Feature3 = "Video Anlatım",
+                            Feature4 = "Yapay Zeka Asistanı",
                             Name = "Almanca A1-B2 Temelden Orta Düzeye(İntermediate) Seviye Eğitim",
-                            Price = 17000.0m
+                            OriginalPrice = 16000.00m,
+                            Price = 13600.00m
                         });
                 });
 
@@ -830,6 +946,12 @@ namespace WebApplication_Deneme.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
+                    b.Property<string>("Biography")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Certifications")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
@@ -840,6 +962,15 @@ namespace WebApplication_Deneme.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime?>("EnrollmentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FacebookUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("InstagramUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -868,11 +999,17 @@ namespace WebApplication_Deneme.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<string>("ProfileImagePath")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TwitterUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("TwoFactorEnabled")
@@ -948,6 +1085,18 @@ namespace WebApplication_Deneme.Migrations
 
             modelBuilder.Entity("WebApplication_Domain.Entities.Appointment", b =>
                 {
+                    b.HasOne("WebApplication_Domain.Entities.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApplication_Domain.Entities.Package", "Package")
+                        .WithMany()
+                        .HasForeignKey("PackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("WebApplication_Domain.Entities.Student", "Student")
                         .WithMany("AppointmentsAsStudent")
                         .HasForeignKey("StudentId")
@@ -967,6 +1116,10 @@ namespace WebApplication_Deneme.Migrations
                     b.HasOne("WebApplication_Domain.Entities.User", null)
                         .WithMany("AppointmentsAsTeacher")
                         .HasForeignKey("UserId1");
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Package");
 
                     b.Navigation("Student");
 

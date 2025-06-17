@@ -1,4 +1,19 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@using WebApplication_Domain.Entities
+@inject UserManager<User> UserManager
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+
+    var httpUser = HttpContextAccessor.HttpContext.User;
+    var currentUser = await UserManager.GetUserAsync(httpUser);
+    var displayName = currentUser?.Name ?? httpUser.Identity.Name;
+    var profileImg = !string.IsNullOrEmpty(currentUser?.ProfileImagePath)
+                          ? currentUser.ProfileImagePath
+                          : Url.Content("~/img/undraw_profile.svg");
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -62,10 +77,9 @@
                 <a class="nav-link" href="/Messages/Index">
                     <i class="fas fa-envelope"></i>
                     <span>Mesajlar</span>
-                    <span class="badge badge-danger" id="messageBadge">0</span>
+                   
                 </a>
             </li>
-
             <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
 
@@ -85,26 +99,34 @@
                     <ul class="navbar-nav ml-auto">
                         <!-- Mesaj Bildirimleri -->
                         <li class="nav-item dropdown no-arrow mx-1">
-                            <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button" data-toggle="dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-envelope fa-fw"></i>
-                                <span class="badge badge-danger badge-counter">3</span>
+                                <span class="badge badge-danger badge-counter" id="messageCounter" style="display:none;">0</span>
                             </a>
+                            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="messagesDropdown" style="width: 320px;">
+                                <h6 class="dropdown-header">Okunmamış Mesajlar</h6>
+                                <div id="newMessagesContainer" class="px-2">
+                                    <div class="text-center small text-gray-500">Yükleniyor...</div>
+                                </div>
+                            </div>
                         </li>
 
                         <!-- Profil Bilgileri -->
                         <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600">@User.Identity.Name</span>
-                                <img class="img-profile rounded-circle" src="~/img/undraw_profile.svg">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown"
+                               role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="mr-2 d-none d-lg-inline text-gray-600">@displayName</span>
+                                <img class="img-profile rounded-circle"
+                                     src="@profileImg"
+                                     style="width:32px; height:32px;" />
                             </a>
-                            <!-- Dropdown - Profil -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in">
-                                <a class="dropdown-item" href="/Profile/Index">
+                                <a class="dropdown-item" asp-controller="Profile" asp-action="Index">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Profil
+                                    Profil Bilgileri
                                 </a>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                                <a class="dropdown-item" asp-controller="Account" asp-action="Logout">
                                     <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                                     Çıkış Yap
                                 </a>
@@ -155,5 +177,66 @@
     <script src="~/Admin/vendor/jquery-easing/jquery.easing.min.js"></script>
     <script src="~/Admin/js/sb-admin-2.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        // Bu fonksiyonu global hale getiriyoruz
+        function updateMessageCounter() {
+            fetch('/Messages/GetUnreadCount')
+                .then(res => res.json())
+                .then(count => {
+                    const counter = document.getElementById("messageCounter");
+                    if (counter) {
+                        counter.innerText = count;
+                        counter.style.display = count > 0 ? "inline-block" : "none";
+                    }
+                });
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const currentPath = window.location.pathname.toLowerCase();
+            const isOnChatPage = currentPath.includes("/messages/chat");
+
+            // Sayfa yüklendiğinde mesaj sayacını güncelle
+            updateMessageCounter();
+
+            fetch('/Messages/GetNewMessages')
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById("newMessagesContainer");
+                    const counter = document.getElementById("messageCounter");
+
+                    if (!data || data.length === 0) {
+                        container.innerHTML = '<div class="text-center small text-gray-500">Yeni mesaj yok</div>';
+                        counter.style.display = "none";
+                        return;
+                    }
+
+                    counter.innerText = data.length;
+                    counter.style.display = "inline-block";
+                    container.innerHTML = "";
+
+                    data.forEach(msg => {
+                        const preview = document.createElement("a");
+                        preview.classList.add("dropdown-item", "d-flex", "align-items-center");
+                        preview.href = "/Messages/Chat?otherUserId=" + encodeURIComponent(msg.senderId);
+
+                        preview.innerHTML = `
+                            <div class="dropdown-list-image mr-3">
+                                <img class="rounded-circle" src="${msg.senderProfileImage || '/img/default.png'}" style="width: 40px; height: 40px;" alt="Profil Resmi">
+                            </div>
+                            <div class="font-weight-bold">
+                                <div class="text-truncate">${msg.messageText.length > 50 ? msg.messageText.substring(0, 50) + '...' : msg.messageText}</div>
+                                <div class="small text-gray-500">${msg.senderName}</div>
+                            </div>`;
+                        container.appendChild(preview);
+                    });
+                })
+                .catch(() => {
+                    const container = document.getElementById("newMessagesContainer");
+                    container.innerHTML = '<div class="text-center small text-gray-500">Mesajlar yüklenirken hata oluştu.</div>';
+                });
+        });
+    </script>
+
 </body>
 </html>

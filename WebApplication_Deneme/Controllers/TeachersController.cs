@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication_Domain.Entities;
 using WebApplication_Infrastructure.Data;
+using System.Linq;
 
 namespace WebApplication_Deneme.Controllers
 {
@@ -25,6 +27,112 @@ namespace WebApplication_Deneme.Controllers
             _context = context;
             _env = env;
             _userManager = userManager;
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Öğretmen")]
+        public async Task<IActionResult> CreateAppointment()
+        {
+            var userId = int.Parse(_userManager.GetUserId(User));
+            var teacherId = await _context.Teachers
+                .Where(t => t.UserId == userId)
+                .Select(t => t.Id)
+                .FirstOrDefaultAsync();
+
+            if (teacherId == 0)
+                return Forbid();
+
+            var packages = await _context.Courses
+                .Where(c => c.TeacherId == teacherId)
+                .Select(c => c.Package)
+                .Distinct()
+                .ToListAsync();
+
+            var model = new AppointmentCreateViewModel
+            {
+                Packages = packages.Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.Name
+                }).ToList()  // Burada ToList() eklenmeli
+            };
+
+            // Courses ve Students boş olacak, paket seçildikçe ajax ile yüklenecek
+            model.Courses = new List<SelectListItem>();
+            model.Students = new List<SelectListItem>();
+
+            return View(model);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Öğretmen")]
+        public async Task<IActionResult> CreateAppointment(AppointmentCreateViewModel model)
+        {
+            var userId = int.Parse(_userManager.GetUserId(User));
+            var teacherId = await _context.Teachers
+                .Where(t => t.UserId == userId)
+                .Select(t => t.Id)
+                .FirstOrDefaultAsync();
+
+            if (teacherId == 0)
+                return Forbid();
+
+            if (model.CourseId == 0 || model.StudentId == 0 || model.Date < DateTime.Now)
+            {
+                TempData["Error"] = "Lütfen tüm alanları doğru doldurun (tarih gelecekte olmalı).";
+                return RedirectToAction(nameof(CreateAppointment));
+            }
+
+            var appointment = new Appointment
+            {
+                PackageId = model.PackageId,
+                CourseId = model.CourseId,
+                StudentId = model.StudentId,
+                TeacherId = teacherId,
+                Date = model.Date,
+                Type = model.Type
+            };
+            _context.Appointments.Add(appointment);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Randevu oluşturuldu. Zamanı geldiğinde Zoom linkini paylaşabilirsiniz.";
+            return RedirectToAction("Index", "Appointments");
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Öğretmen")]
+        public async Task<IActionResult> GetCoursesByPackage(int packageId)
+        {
+            var userId = int.Parse(_userManager.GetUserId(User));
+            var teacherId = await _context.Teachers
+                .Where(t => t.UserId == userId)
+                .Select(t => t.Id)
+                .FirstOrDefaultAsync();
+
+            var courses = await _context.Courses
+                .Where(c => c.TeacherId == teacherId && c.PackageId == packageId)
+                .Select(c => new { c.Id, c.Name })
+                .ToListAsync();
+
+            return Json(courses);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Öğretmen")]
+        public async Task<IActionResult> GetStudentsByCourse(int courseId)
+        {
+            var students = await _context.CourseEnrollments
+                .Where(e => e.CourseId == courseId)
+                .Select(e => new
+                {
+                    e.Student.Id,
+                    Name = e.Student.User.Name
+                })
+                .ToListAsync();
+
+            return Json(students);
         }
 
         // TeachersController.cs

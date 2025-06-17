@@ -1,0 +1,81 @@
+﻿@model AppointmentCreateViewModel
+@{
+    Layout = "_TeacherLayout";
+    ViewData["Title"] = "Randevu Oluştur";
+}
+
+<h2>Randevu Oluştur</h2>
+
+<form asp-action="CreateAppointment" method="post">
+    <div class="form-group">
+        <label>Paket</label>
+        <select asp-for="PackageId" asp-items="Model.Packages" class="form-control" id="pkg">
+            <option value="">-- Paket Seç --</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Kurs</label>
+        <select asp-for="CourseId" class="form-control" id="course">
+            <option value="">-- Kurs Seç --</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Öğrenci</label>
+        <select asp-for="StudentId" class="form-control" id="student">
+            <option value="">-- Öğrenci Seç --</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Tarih</label>
+        <input asp-for="Date" class="form-control" type="datetime-local" />
+    </div>
+
+    <div class="form-group">
+        <label>Tip</label>
+        <select asp-for="Type" class="form-control">
+            <option value="Online">Online</option>
+            <option value="Yüz Yüze">Yüz Yüze</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Randevu Oluştur</button>
+</form>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(function () {
+            // Paket seçildiğinde kursları getir
+            $('#pkg').change(function () {
+                var packageId = $(this).val();
+                $('#course').empty().append('<option value="">-- Kurs Seç --</option>');
+                $('#student').empty().append('<option value="">-- Öğrenci Seç --</option>');
+
+                if (packageId) {
+                    $.getJSON('@Url.Action("GetCoursesByPackage", "Teachers")', { packageId: packageId }, function (courses) {
+                        $.each(courses, function (i, course) {
+                            $('#course').append($('<option>').val(course.id).text(course.name));
+                        });
+                    });
+                }
+            });
+
+            // Kurs seçildiğinde öğrencileri getir
+            $('#course').change(function () {
+                var courseId = $(this).val();
+                $('#student').empty().append('<option value="">-- Öğrenci Seç --</option>');
+
+                if (courseId) {
+                    $.getJSON('@Url.Action("GetStudentsByCourse", "Teachers")', { courseId: courseId }, function (students) {
+                        $.each(students, function (i, student) {
+                            $('#student').append($('<option>').val(student.id).text(student.name));
+                        });
+                    });
+                }
+            });
+        });
+    </script>
+}

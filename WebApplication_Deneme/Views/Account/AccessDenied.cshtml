@@ -1,0 +1,10 @@
+﻿
+@{
+    ViewData["Title"] = "Erişim Reddedildi";
+    Layout = User.IsInRole("Öğretmen") ? "_TeacherLayout" :
+         User.IsInRole("Öğrenci") ? "_StudentLayout" :
+         User.IsInRole("Admin") ? "_AdminLayout" : "_Layout";
+}
+
+<h1>Erişim Reddedildi</h1>
+<p>Bu sayfaya erişim yetkiniz yoktur.</p>

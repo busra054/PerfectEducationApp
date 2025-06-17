@@ -1,39 +1,130 @@
 ﻿@model WebApplication_Domain.Entities.Package
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Paket Detayları";
     Layout = User.IsInRole("Öğretmen") ? "_TeacherLayout" :
-          User.IsInRole("Öğrenci") ? "_StudentLayout" :
-          User.IsInRole("Admin") ? "_AdminLayout" : "_Layout";
+             User.IsInRole("Öğrenci") ? "_StudentLayout" :
+             User.IsInRole("Admin") ? "_AdminLayout" : "_Layout";
 }
 
-<h1>Details</h1>
+<div class="container py-5">
+    <div class="row g-5">
+        <div class="col-lg-6">
+            @if (!string.IsNullOrEmpty(Model.CoverImagePath))
+            {
+                <img src="@Model.CoverImagePath" class="img-fluid rounded-3 shadow" alt="@Model.Name">
+            }
+            else
+            {
+                <div class="bg-light rounded-3 shadow d-flex align-items-center justify-content-center" style="height: 400px;">
+                    <div class="text-center">
+                        <i class="fas fa-box-open fa-4x text-secondary mb-3"></i>
+                        <p class="text-muted">Görsel bulunamadı</p>
+                    </div>
+                </div>
+            }
+        </div>
 
-<div>
-    <h4>Package</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Price)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Price)
-        </dd>
-    </dl>
+        <div class="col-lg-6">
+            <div class="d-flex align-items-center mb-4">
+                @if (!string.IsNullOrEmpty(Model.BannerText))
+                {
+                    <span class="badge bg-danger me-3">@Model.BannerText</span>
+                }
+                <h1 class="fw-bold mb-0">@Model.Name</h1>
+            </div>
+
+            <p class="lead mb-4">@Model.Description</p>
+
+            <div class="features mb-5">
+                <h3 class="mb-3">Paket İçeriği</h3>
+
+                <div class="d-flex align-items-center mb-3">
+                    <div class="feature-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                        <span class="text-white">❓</span>
+                    </div>
+                    <span class="fs-5">@Model.Feature1</span>
+                </div>
+
+                <div class="d-flex align-items-center mb-3">
+                    <div class="feature-icon bg-success rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                        <span class="text-white">📄</span>
+                    </div>
+                    <span class="fs-5">@Model.Feature2</span>
+                </div>
+
+                <div class="d-flex align-items-center mb-3">
+                    <div class="feature-icon bg-info rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                        <span class="text-white">🎥</span>
+                    </div>
+                    <span class="fs-5">@Model.Feature3</span>
+                </div>
+
+                <div class="d-flex align-items-center mb-3">
+                    <div class="feature-icon bg-warning rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                        <span class="text-white">🧠</span>
+                    </div>
+                    <span class="fs-5">@Model.Feature4</span>
+                </div>
+            </div>
+
+            <div class="price-card bg-light p-4 rounded-3 mb-4 border border-2 border-primary">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-1">Fiyat</h4>
+                        @if (Model.DiscountRate.HasValue && Model.DiscountRate > 0)
+                        {
+                            <div class="text-muted text-decoration-line-through">
+                                @Model.OriginalPrice?.ToString("N2") TL
+                            </div>
+                        }
+                        <div class="display-4 text-primary fw-bold">
+                            @Model.Price.ToString("N2") TL
+                        </div>
+                        @if (Model.DiscountRate.HasValue && Model.DiscountRate > 0)
+                        {
+                            <div class="text-success fw-bold mt-1">
+                                %@Model.DiscountRate İndirim!
+                            </div>
+                        }
+                    </div>
+
+                    <div>
+                        @if (User.IsInRole("Öğrenci"))
+                        {
+                            <a asp-controller="Payments" asp-action="Purchase" asp-route-packageId="@Model.Id"
+                               class="btn btn-primary btn-lg px-4 py-3 rounded-pill">
+                                <i class="fas fa-shopping-cart me-2"></i>Hemen Satın Al
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <a asp-action="PackageDesign" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Tüm Paketlere Dön
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+
+<style>
+    .feature-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .price-card {
+        border: 2px dashed #0d6efd;
+        background: rgba(13, 110, 253, 0.05) !important;
+    }
+
+    .lead {
+        font-size: 1.25rem;
+        line-height: 1.7;
+    }
+</style>

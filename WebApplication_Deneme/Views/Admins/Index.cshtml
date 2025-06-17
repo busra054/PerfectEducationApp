@@ -48,11 +48,11 @@
                                 <td>••••••••</td> <!-- Şifre gizlendi -->
                                 <td>
                                     <div class="btn-group" role="group">
-                                        <a asp-action="Edit" asp-route-id="@admin.AdminId"
+                                        <a asp-action="Edit" asp-route-id="@admin.Id"
                                            class="btn btn-warning btn-sm">
                                             <i class="fas fa-edit"></i> Düzenle
                                         </a>
-                                        <a asp-action="Delete" asp-route-id="@admin.AdminId"
+                                        <a asp-action="Delete" asp-route-id="@admin.Id"
                                            class="btn btn-danger btn-sm"
                                            onclick="return confirm('Bu admini silmek istediğinize emin misiniz?')">
                                             <i class="fas fa-trash-alt"></i> Sil
@@ -95,14 +95,7 @@
                             {
                                 <tr>
                                     <td>
-                                        @if (request.User != null)
-                                        {
-                                            @request.User.UserName
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">Kullanıcı bulunamadı</span>
-                                        }
+                                        @(request.User?.UserName ?? "<span class=\"text-muted\">Kullanıcı bulunamadı</span>")
                                     </td>
                                     <td>@request.RequestDate.ToString("dd MMM yyyy")</td>
                                     <td>@request.ExperienceYears yıl</td>
@@ -128,12 +121,11 @@
                                                 </button>
                                             </form>
 
-                                            <form method="post" asp-action="RejectTeacher"
-                                                  class="d-flex gap-2">
+                                            <form method="post" asp-action="RejectTeacher" class="d-flex gap-2">
                                                 <input type="hidden" name="requestId" value="@request.Id" />
                                                 <input type="text" name="adminNotes"
                                                        class="form-control form-control-sm"
-                                                       placeholder="Red sebebi" required>
+                                                       placeholder="Red sebebi" required />
                                                 <button type="submit" class="btn btn-danger btn-sm">
                                                     <i class="fas fa-times"></i> Reddet
                                                 </button>

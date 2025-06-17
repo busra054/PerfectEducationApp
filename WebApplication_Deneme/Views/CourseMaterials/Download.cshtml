@@ -1,0 +1,51 @@
+﻿@model WebApplication_Domain.Entities.CourseMaterial
+@using System.IO    
+
+@{
+    ViewData["Title"] = "Materyal Önizleme";
+    var ext = System.IO.Path.GetExtension(Model.FilePath)?.ToLowerInvariant() ?? "";
+}
+
+<h2 class="mb-4">Materyal Önizleme</h2>
+<div class="mb-3">
+    <strong>Ders:</strong> @Model.Course.Name<br />
+    <strong>Tür:</strong> @Model.Type<br />
+    <strong>Yükleyen:</strong> @Model.UploadedBy.Name<br />
+    <strong>Tarih:</strong> @Model.UploadDate.ToString("dd.MM.yyyy HH:mm")
+</div>
+
+<div class="preview-container mb-4">
+    @* PDF *@
+    @if (ext.Equals(".pdf", StringComparison.OrdinalIgnoreCase))
+    {
+        <embed src="~/uploads/@Model.FilePath"
+               type="application/pdf"
+               width="100%" height="600px" />
+    }
+    @* Video *@
+    else if (ext.Equals(".mp4", StringComparison.OrdinalIgnoreCase))
+    {
+        <video controls style="max-width:100%; height:auto;">
+            <source src="~/uploads/@Model.FilePath" type="video/mp4" />
+            Tarayıcınız video etiketini desteklemiyor.
+        </video>
+    }
+    @* Resim *@
+    else if (ext.Equals(".jpg", StringComparison.OrdinalIgnoreCase)
+    || ext.Equals(".jpeg", StringComparison.OrdinalIgnoreCase)
+    || ext.Equals(".png", StringComparison.OrdinalIgnoreCase))
+    {
+        <img src="~/uploads/@Model.FilePath" class="img-fluid" alt="@Model.Type" />
+    }
+    @* Diğerleri *@
+    else
+    {
+        <div class="alert alert-info">
+            Bu dosya tarayıcıda önizlenemiyor. Lütfen aşağıdaki “İndir” butonunu kullanın.
+        </div>
+    }
+</div>
+
+<a asp-action="File" asp-route-id="@Model.Id" class="btn btn-success">
+    <i class="fas fa-download mr-1"></i> İndir
+</a>

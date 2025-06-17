@@ -1,27 +1,46 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using WebApplication_Infrastructure.Data;
 using WebApplication_Domain.Entities;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 
 namespace WebApplication_Deneme.Controllers
 {
-    [Authorize(AuthenticationSchemes = "AdminCookies", Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     public class AdminsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<User> _userManager;
 
-        public AdminsController(ApplicationDbContext context)
+        public AdminsController(ApplicationDbContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
+
+            var adminEntities = adminUsers.Select(u => new Admin
+            {
+                // AdminId kaldırıldı, Id kullanılıyor
+                Id = u.Id,
+                AdminName = u.Name,
+                AdminPassword = "••••••••"
+            });
+
+            var viewModel = new AdminDashboardViewModel
+            {
+                Admins = adminEntities,
+                PendingRequests = await _context.TeacherRequests
+                    .Include(r => r.User)
+                    .Where(r => r.Status == RequestStatus.Pending)
+                    .ToListAsync()
+            };
+
+            return View(viewModel);
         }
 
         public async Task<IActionResult> PendingTeachers()
@@ -65,7 +84,6 @@ namespace WebApplication_Deneme.Controllers
 
             if (request != null)
             {
-                // Öğretmen oluştur
                 var teacher = new Teacher
                 {
                     UserId = request.UserId,
@@ -77,17 +95,15 @@ namespace WebApplication_Deneme.Controllers
                 _context.Teachers.Add(teacher);
                 await _context.SaveChangesAsync();
 
-                // Branş ilişkisini ekle
-                if (request.BranchId > 0) // int için doğru kontrol
+                if (request.BranchId > 0)
                 {
                     _context.TeacherBranches.Add(new TeacherBranch
                     {
                         TeacherId = teacher.Id,
-                        BranchId = request.BranchId // Direkt değeri kullan
+                        BranchId = request.BranchId
                     });
                 }
 
-                // Başvuru durumunu güncelle
                 request.Status = RequestStatus.Approved;
                 request.ReviewedDate = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
@@ -115,135 +131,74 @@ namespace WebApplication_Deneme.Controllers
             return RedirectToAction("PendingTeachers");
         }
 
-        [AllowAnonymous]
-        public IActionResult Login()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(AdminLoginModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                var admin = await _context.Admins
-                    .FirstOrDefaultAsync(a => a.AdminName == model.AdminName &&
-                                             a.AdminPassword == model.AdminPassword);
-
-                if (admin != null)
-                {
-                    var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, admin.AdminName),
-                new Claim(ClaimTypes.Role, "Admin")
-            };
-
-                    var claimsIdentity = new ClaimsIdentity(claims, "AdminCookies"); // Scheme ile eşleşmeli
-                    var authProperties = new AuthenticationProperties { IsPersistent = true };
-
-                    // AdminCookies scheme'ini kullanarak giriş yap
-                    await HttpContext.SignInAsync(
-                        "AdminCookies",
-                        new ClaimsPrincipal(claimsIdentity),
-                        authProperties);
-
-                    return RedirectToAction("Index", "Admins");
-                }
-
-                ModelState.AddModelError(string.Empty, "Geçersiz kullanıcı adı veya şifre.");
-            }
-            return View(model);
-        }
-
-        // GET: Admins
-        public async Task<IActionResult> Index()
-        {
-            if (!User.Identity.IsAuthenticated || !User.IsInRole("Admin"))
-            {
-                return RedirectToAction("Login", "Admins");
-            }
-
-            var viewModel = new AdminDashboardViewModel
-            {
-                Admins = await _context.Admins.ToListAsync(),
-                PendingRequests = await _context.TeacherRequests
-                    .Include(r => r.User)
-                    .Where(r => r.Status == RequestStatus.Pending)
-                    .ToListAsync()
-            };
-
-            return View(viewModel);
-        }
-
-        // GET: Admins/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
+            // AdminId yerine Id kullanıldı
             var admin = await _context.Admins
-                .FirstOrDefaultAsync(m => m.AdminId == id);
-            if (admin == null)
-            {
-                return NotFound();
-            }
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (admin == null) return NotFound();
 
             return View(admin);
         }
 
-        // GET: Admins/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Admins/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("AdminId,AdminName,AdminPassword")] Admin admin)
+        public async Task<IActionResult> Create(string Name, string Email, string password)
         {
-            if (ModelState.IsValid)
+            if (string.IsNullOrWhiteSpace(Name) || string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(password))
             {
-                _context.Add(admin);
-                await _context.SaveChangesAsync();
+                TempData["ErrorMessage"] = "Tüm alanları doldurmalısınız.";
+                return View();
+            }
+
+            var user = new User
+            {
+                UserName = Email,
+                Email = Email,
+                Name = Name,
+                Role = "Admin"
+            };
+
+            var result = await _userManager.CreateAsync(user, password);
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(user, "Admin");
+                TempData["SuccessMessage"] = "Yeni admin başarıyla oluşturuldu.";
                 return RedirectToAction(nameof(Index));
             }
-            return View(admin);
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return View();
         }
 
-        // GET: Admins/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
+            // AdminId yerine Id kullanıldı
             var admin = await _context.Admins.FindAsync(id);
-            if (admin == null)
-            {
-                return NotFound();
-            }
+            if (admin == null) return NotFound();
+
             return View(admin);
         }
 
-        // POST: Admins/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("AdminId,AdminName,AdminPassword")] Admin admin)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,AdminName,AdminPassword")] Admin admin)
         {
-            if (id != admin.AdminId)
-            {
-                return NotFound();
-            }
+            if (id != admin.Id) return NotFound();
 
             if (ModelState.IsValid)
             {
@@ -254,39 +209,27 @@ namespace WebApplication_Deneme.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!AdminExists(admin.AdminId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    if (!AdminExists(admin.Id)) return NotFound();
+                    else throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
             return View(admin);
         }
 
-        // GET: Admins/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
+            // AdminId yerine Id kullanıldı
             var admin = await _context.Admins
-                .FirstOrDefaultAsync(m => m.AdminId == id);
-            if (admin == null)
-            {
-                return NotFound();
-            }
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (admin == null) return NotFound();
 
             return View(admin);
         }
 
-        // POST: Admins/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -295,15 +238,14 @@ namespace WebApplication_Deneme.Controllers
             if (admin != null)
             {
                 _context.Admins.Remove(admin);
+                await _context.SaveChangesAsync();
             }
-
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool AdminExists(int id)
         {
-            return _context.Admins.Any(e => e.AdminId == id);
+            return _context.Admins.Any(e => e.Id == id);
         }
     }
 }

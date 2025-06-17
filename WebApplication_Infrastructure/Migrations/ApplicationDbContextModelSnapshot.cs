@@ -157,11 +157,11 @@ namespace WebApplication_Infrastructure.Migrations
 
             modelBuilder.Entity("WebApplication_Domain.Entities.Admin", b =>
                 {
-                    b.Property<int>("AdminId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AdminId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
@@ -182,9 +182,6 @@ namespace WebApplication_Infrastructure.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
-
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -216,7 +213,7 @@ namespace WebApplication_Infrastructure.Migrations
                     b.Property<string>("UserName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("AdminId");
+                    b.HasKey("Id");
 
                     b.ToTable("Admins");
                 });
@@ -229,8 +226,14 @@ namespace WebApplication_Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("CourseId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("PackageId")
+                        .HasColumnType("int");
 
                     b.Property<int>("StudentId")
                         .HasColumnType("int");
@@ -248,7 +251,15 @@ namespace WebApplication_Infrastructure.Migrations
                     b.Property<int?>("UserId1")
                         .HasColumnType("int");
 
+                    b.Property<string>("ZoomLink")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("PackageId");
 
                     b.HasIndex("StudentId");
 
@@ -270,7 +281,6 @@ namespace WebApplication_Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AttachmentPath")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("CourseId")
@@ -308,9 +318,20 @@ namespace WebApplication_Infrastructure.Migrations
                     b.Property<int>("AssignmentId")
                         .HasColumnType("int");
 
-                    b.Property<string>("FilePath")
-                        .IsRequired()
+                    b.Property<string>("Comments")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Feedback")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FilePath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Grade")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("GradedDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("StudentId")
                         .HasColumnType("int");
@@ -318,11 +339,16 @@ namespace WebApplication_Infrastructure.Migrations
                     b.Property<DateTime>("SubmissionDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AssignmentId");
 
                     b.HasIndex("StudentId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("AssignmentSubmissions");
                 });
@@ -342,6 +368,58 @@ namespace WebApplication_Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Branches");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Matematik"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Fizik"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Kimya"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "Biyoloji"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "Türkçe"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Name = "İngilizce"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Name = "Tarih"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Name = "Coğrafya"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Name = "İspanyolca"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Name = "Korece"
+                        });
                 });
 
             modelBuilder.Entity("WebApplication_Domain.Entities.Course", b =>
@@ -453,6 +531,12 @@ namespace WebApplication_Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("IsDeletedByReceiver")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeletedBySender")
+                        .HasColumnType("bit");
+
                     b.Property<string>("MessageText")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -483,13 +567,37 @@ namespace WebApplication_Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("BannerText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CoverImagePath")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Description")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("DiscountRate")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Feature1")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Feature2")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Feature3")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Feature4")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("OriginalPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -502,6 +610,143 @@ namespace WebApplication_Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Packages");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            BannerText = "Her Şey Dahil",
+                            CoverImagePath = "/img/1.jpg",
+                            Description = "TYT ve AYT tüm konuları kapsayan, eğitim, canlı yayınlar ve deneme sınavlarıyla eksiksiz hazırlık.",
+                            DiscountRate = 30,
+                            Feature1 = "100 Soru Sorma Hakkı",
+                            Feature2 = "PDF Özet Notlar",
+                            Feature3 = "Videolu Deneme Sınavları",
+                            Feature4 = "Yapay Zeka Asistanı",
+                            Name = "TYT-Eğitimi Full Paket",
+                            OriginalPrice = 35000.00m,
+                            Price = 24500.00m
+                        },
+                        new
+                        {
+                            Id = 2,
+                            BannerText = "Kampanyalı",
+                            CoverImagePath = "/img/2.jpg",
+                            Description = "TYT konularına hızlı tekrar ve yoğun soru çözümü içeren pratik paket.",
+                            DiscountRate = 20,
+                            Feature1 = "50 Canlı Soru Saati",
+                            Feature2 = "40 Test Denemesi",
+                            Feature3 = "PDF Özet Notlar",
+                            Feature4 = "Yapay Zeka Asistanı",
+                            Name = "AYT-Sayısal Eğitimi Full Paket",
+                            OriginalPrice = 18000.00m,
+                            Price = 14400.00m
+                        },
+                        new
+                        {
+                            Id = 3,
+                            BannerText = "İndirimli",
+                            CoverImagePath = "/img/3.jpg",
+                            Description = "Matematik, Fizik, Kimya ve Biyoloji konularını içeren kapsamlı sayısal paket.",
+                            DiscountRate = 25,
+                            Feature1 = "80 Deneme Sınavı",
+                            Feature2 = "Canlı Soru Çözümü",
+                            Feature3 = "PDF Özet Notlar",
+                            Feature4 = "Yapay Zeka Asistanı",
+                            Name = "AYT-Eşit Ağırlık Eğitimi",
+                            OriginalPrice = 30000.00m,
+                            Price = 22500.00m
+                        },
+                        new
+                        {
+                            Id = 4,
+                            BannerText = "Kampanyalı",
+                            CoverImagePath = "/img/4.jpg",
+                            Description = "Matematik, Edebiyat, Tarih ve Coğrafya derslerini kapsayan eşit ağırlık paketi.",
+                            DiscountRate = 25,
+                            Feature1 = "75 Deneme Sınavı",
+                            Feature2 = "Video Çözümler",
+                            Feature3 = "PDF Özet Notlar",
+                            Feature4 = "Yapay Zeka Asistanı",
+                            Name = "KPSS Kapsamlı Eğitimi",
+                            OriginalPrice = 28000.00m,
+                            Price = 21000.00m
+                        },
+                        new
+                        {
+                            Id = 5,
+                            BannerText = "Her Şey Dahil",
+                            CoverImagePath = "/img/5.jpg",
+                            Description = "Genel Yetenek ve Genel Kültür derslerinden oluşan KPSS hazırlık paketi.",
+                            DiscountRate = 28,
+                            Feature1 = "60 Deneme Sınavı",
+                            Feature2 = "Video Anlatım",
+                            Feature3 = "PDF Özet Notlar",
+                            Feature4 = "Yapay Zeka Asistanı",
+                            Name = "DGS Kapsamlı Eğitimi",
+                            OriginalPrice = 25000.00m,
+                            Price = 18000.00m
+                        },
+                        new
+                        {
+                            Id = 6,
+                            BannerText = "Kampanyalı",
+                            CoverImagePath = "/img/6.jpg",
+                            Description = "Dikey Geçiş Sınavı için tüm başlıkları kapsayan hazırlık paketi.",
+                            DiscountRate = 20,
+                            Feature1 = "50 Deneme Sınavı",
+                            Feature2 = "PDF Özet Notlar",
+                            Feature3 = "Video Çözümler",
+                            Feature4 = "Yapay Zeka Asistanı",
+                            Name = "İngilizce A1-A2 Temel Seviye Eğitim",
+                            OriginalPrice = 20000.00m,
+                            Price = 16000.00m
+                        },
+                        new
+                        {
+                            Id = 7,
+                            BannerText = "İndirimli",
+                            CoverImagePath = "/img/7.jpg",
+                            Description = "Okuma, yazma, konuşma ve dinleme pratiği ile A1-A2 seviyesine hazırlık.",
+                            DiscountRate = 15,
+                            Feature1 = "Canlı Konuşma Seansları",
+                            Feature2 = "PDF Eğitim Materyalleri",
+                            Feature3 = "Kısa Video Dersler",
+                            Feature4 = "Yapay Zeka Asistanı",
+                            Name = "İspanyolca A1-A2 Temel Seviye Eğitim",
+                            OriginalPrice = 15000.00m,
+                            Price = 12750.00m
+                        },
+                        new
+                        {
+                            Id = 8,
+                            BannerText = "Kampanyalı",
+                            CoverImagePath = "/img/8.jpg",
+                            Description = "Temel Korece becerilerini geliştiren A1-A2 paketi.",
+                            DiscountRate = 15,
+                            Feature1 = "Konuşma Kulübü",
+                            Feature2 = "PDF Notlar",
+                            Feature3 = "Video Dersler",
+                            Feature4 = "Yapay Zeka Asistanı",
+                            Name = "Korece A1-A2 Temel Seviye Eğitim",
+                            OriginalPrice = 14000.00m,
+                            Price = 11900.00m
+                        },
+                        new
+                        {
+                            Id = 9,
+                            BannerText = "Her Şey Dahil",
+                            CoverImagePath = "/img/9.jpg",
+                            Description = "İlk seviye Korece pratik ve temel dil bilgisi paketi.",
+                            DiscountRate = 15,
+                            Feature1 = "Karakter Tanıma Dersleri",
+                            Feature2 = "PDF Eğitim Seti",
+                            Feature3 = "Video Anlatım",
+                            Feature4 = "Yapay Zeka Asistanı",
+                            Name = "Almanca A1-B2 Temelden Orta Düzeye(İntermediate) Seviye Eğitim",
+                            OriginalPrice = 16000.00m,
+                            Price = 13600.00m
+                        });
                 });
 
             modelBuilder.Entity("WebApplication_Domain.Entities.Payment", b =>
@@ -540,12 +785,20 @@ namespace WebApplication_Infrastructure.Migrations
                     b.Property<DateTime>("PaymentDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("PackageId");
+
+                    b.HasIndex("StudentId");
 
                     b.HasIndex("UserId");
 
@@ -808,6 +1061,18 @@ namespace WebApplication_Infrastructure.Migrations
 
             modelBuilder.Entity("WebApplication_Domain.Entities.Appointment", b =>
                 {
+                    b.HasOne("WebApplication_Domain.Entities.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApplication_Domain.Entities.Package", "Package")
+                        .WithMany()
+                        .HasForeignKey("PackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("WebApplication_Domain.Entities.Student", "Student")
                         .WithMany("AppointmentsAsStudent")
                         .HasForeignKey("StudentId")
@@ -828,6 +1093,10 @@ namespace WebApplication_Infrastructure.Migrations
                         .WithMany("AppointmentsAsTeacher")
                         .HasForeignKey("UserId1");
 
+                    b.Navigation("Course");
+
+                    b.Navigation("Package");
+
                     b.Navigation("Student");
 
                     b.Navigation("Teacher");
@@ -838,7 +1107,7 @@ namespace WebApplication_Infrastructure.Migrations
                     b.HasOne("WebApplication_Domain.Entities.Course", "Course")
                         .WithMany("Assignments")
                         .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Course");
@@ -852,11 +1121,15 @@ namespace WebApplication_Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("WebApplication_Domain.Entities.User", "Student")
-                        .WithMany("Submissions")
+                    b.HasOne("WebApplication_Domain.Entities.Student", "Student")
+                        .WithMany()
                         .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("WebApplication_Domain.Entities.User", null)
+                        .WithMany("Submissions")
+                        .HasForeignKey("UserId");
 
                     b.Navigation("Assignment");
 
@@ -962,15 +1235,18 @@ namespace WebApplication_Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("WebApplication_Domain.Entities.User", "User")
+                    b.HasOne("WebApplication_Domain.Entities.Student", "Student")
+                        .WithMany("PurchasedPackages")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApplication_Domain.Entities.User", null)
                         .WithMany("Payments")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("UserId");
 
                     b.Navigation("Package");
 
-                    b.Navigation("User");
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("WebApplication_Domain.Entities.Student", b =>
@@ -1068,6 +1344,8 @@ namespace WebApplication_Infrastructure.Migrations
                     b.Navigation("AppointmentsAsStudent");
 
                     b.Navigation("Enrollments");
+
+                    b.Navigation("PurchasedPackages");
                 });
 
             modelBuilder.Entity("WebApplication_Domain.Entities.Teacher", b =>

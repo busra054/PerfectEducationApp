@@ -1,110 +1,141 @@
 ﻿@model IEnumerable<WebApplication_Domain.Entities.Package>
-@using System.IO
 
 @{
     ViewData["Title"] = "Paket Listesi";
     Layout = User.IsInRole("Öğretmen") ? "_TeacherLayout" :
-     User.IsInRole("Öğrenci") ? "_StudentLayout" :
-     User.IsInRole("Admin") ? "_AdminLayout" : "_Layout";
+             User.IsInRole("Öğrenci") ? "_StudentLayout" :
+             User.IsInRole("Admin") ? "_AdminLayout" : "_Layout";
 }
 
-<h1>Paket Listesi</h1>
+<div class="container py-5">
+    <h1 class="text-center mb-5">Eğitim Paketlerimiz</h1>
 
-<div class="row">
-    @foreach (var package in Model)
-    {
-        <div class="col-md-4"> @* Her satırda 3 kart olacak şekilde ayarlandı. Ekran boyutuna göre ayarlanabilir. *@
-
-            <div class="card mb-4 box-shadow">
-                @{
-                    string[] validExtensions = new[] { ".jpg", ".jpeg", ".png" };
-                    string imageFileName = package.Id.ToString();
-                    string imageUrl = null;
-
-                    // Geçerli dosya uzantılarını kontrol et
-                    foreach (var ext in validExtensions)
+    <div class="row g-4">
+        @foreach (var package in Model)
+        {
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 shadow-lg rounded-3 overflow-hidden">
+                    @if (!string.IsNullOrEmpty(package.BannerText))
                     {
-                        string imagePath = $"/img/{imageFileName}{ext}";
-                        string physicalPath = Directory.GetCurrentDirectory() + "/wwwroot/img/" + imageFileName + ext;
+                        <div class="card-banner bg-danger text-white py-2 text-center">
+                            @package.BannerText
+                        </div>
+                    }
 
-                        if (System.IO.File.Exists(physicalPath))
+                    <div class="card-img-wrapper" style="height: 200px; overflow: hidden;">
+                        @if (!string.IsNullOrEmpty(package.CoverImagePath))
                         {
-                            imageUrl = Url.Content(imagePath);
-                            break;
+                            <img src="@package.CoverImagePath" class="card-img-top h-100 w-100" alt="@package.Name" style="object-fit: cover;">
                         }
-                    }
-
-                    // Eğer resim bulunamazsa varsayılan resmi kullan
-                    if (imageUrl == null)
-                    {
-                        imageUrl = Url.Content("~/img/Sınıf.jpg");
-                    }
-                }
-                @if (User.IsInRole("Öğrenci"))
-                {
-                    <img class="card-img-top" src="@imageUrl" alt="@package.Name" style="max-height: 200px; object-fit: cover;">
-                    <div class="card-body">
-                        <h4 class="card-title">@package.Name</h4>
-                        <p class="card-text">@package.Description</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="btn-group">
-                                <a asp-controller="Packages" asp-action="Details" asp-route-id="@package.Id" class="btn btn-sm btn-outline-secondary">Detaylar</a>
-                                <a asp-action="Purchase" asp-controller="Payments" asp-route-packageId="@package.Id" class="btn btn-primary">
-                                    Satın Al (@package.Price.ToString("C"))
-                                </a>
+                        else
+                        {
+                            <div class="bg-light d-flex align-items-center justify-content-center h-100">
+                                <i class="fas fa-box-open fa-3x text-secondary"></i>
                             </div>
-                            <small class="text-muted">@package.Price TL</small>
+                        }
+                    </div>
+
+                    <div class="card-body p-4">
+                        <h3 class="card-title fw-bold mb-3">@package.Name</h3>
+
+                        <ul class="package-features list-unstyled mb-4">
+                            @if (!string.IsNullOrEmpty(package.Feature1))
+                            {
+                                <li class="d-flex align-items-center mb-2">
+                                    <span class="feature-icon me-3">❓</span>
+                                    <span>@package.Feature1</span>
+                                </li>
+                            }
+                            @if (!string.IsNullOrEmpty(package.Feature2))
+                            {
+                                <li class="d-flex align-items-center mb-2">
+                                    <span class="feature-icon me-3">📄</span>
+                                    <span>@package.Feature2</span>
+                                </li>
+                            }
+                            @if (!string.IsNullOrEmpty(package.Feature3))
+                            {
+                                <li class="d-flex align-items-center mb-2">
+                                    <span class="feature-icon me-3">🎥</span>
+                                    <span>@package.Feature3</span>
+                                </li>
+                            }
+                            @if (!string.IsNullOrEmpty(package.Feature4))
+                            {
+                                <li class="d-flex align-items-center mb-2">
+                                    <span class="feature-icon me-3">🧠</span>
+                                    <span>@package.Feature4</span>
+                                </li>
+                            }
+                        </ul>
+
+                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                            <div class="price-section">
+                                @if (package.DiscountRate.HasValue && package.DiscountRate > 0)
+                                {
+                                    <div class="text-muted text-decoration-line-through small">
+                                        @package.OriginalPrice?.ToString("N2") TL
+                                    </div>
+                                }
+                                <div class="h4 text-primary fw-bold mb-0">
+                                    @package.Price.ToString("N2") TL
+                                </div>
+                            </div>
+
+                            <div>
+                                <a asp-action="Details" asp-route-id="@package.Id" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-info-circle me-1"></i>Detaylar
+                                </a>
+                                @if (User.IsInRole("Öğrenci"))
+                                {
+                                    <a asp-controller="Payments" asp-action="Purchase" asp-route-packageId="@package.Id"
+                                       class="btn btn-primary btn-sm ms-2">
+                                        <i class="fas fa-shopping-cart me-1"></i>Satın Al
+                                    </a>
+                                }
+                            </div>
                         </div>
                     </div>
-                }
-                else
-                {
-                        <img class="card-img-top" src="@imageUrl" alt="@package.Name" style="max-height: 200px; object-fit: cover;">
-                        <div class="card-body">
-                            <h4 class="card-title">@package.Name</h4>
-                            <p class="card-text">@package.Description</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="btn-group">
-                                    <a asp-controller="Account" asp-action="Index" asp-route-id="@package.Id" class="btn btn-sm btn-outline-secondary">Detaylar</a>
-                                    <a asp-controller="Account" asp-action="Index" asp-route-id="@package.Id" class="btn btn-sm btn-primary">Satın Al</a>
-                                </div>
-                                <small class="text-muted">@package.Price TL</small>
-                            </div>
-                        </div>
-                    
-                }
-
-
-
+                </div>
             </div>
-        </div>
-    }
+        }
+    </div>
 </div>
 
 <style>
     .card {
-        border: 1px solid #eee; /* Daha hafif bir çerçeve */
-        border-radius: 8px; /* Köşeleri yuvarlaklaştır */
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Hafif gölge */
-        transition: transform 0.2s; /* Hover efekti için geçiş */
+        transition: transform 0.3s, box-shadow 0.3s;
+        border: none;
     }
 
-    .card:hover {
-        transform: translateY(-5px); /* Hoverda yukarı kaydırma */
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Daha belirgin gölge */
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
+        }
+
+    .card-banner {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 10;
+        font-weight: 600;
+        letter-spacing: 0.5px;
     }
 
-    .card-title {
-        font-weight: 600; /* Başlığı kalınlaştır */
-        margin-bottom: 0.75rem;
+    .feature-icon {
+        font-size: 1.5rem;
+        width: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    .card-text {
-        color: #555; /* Açıklama metnini koyulaştır */
-        font-size: 0.9rem;
+    .price-section {
+        line-height: 1.2;
     }
 
-    .text-muted {
-        font-size: 0.8rem;
+    .package-features li {
+        padding: 5px 0;
     }
 </style>

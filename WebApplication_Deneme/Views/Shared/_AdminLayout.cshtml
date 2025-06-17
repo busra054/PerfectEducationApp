@@ -1,4 +1,9 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@using WebApplication_Domain.Entities
+@inject UserManager<User> UserManager
+@inject IHttpContextAccessor HttpContextAccessor
+
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -451,7 +456,7 @@
     </div>
 
     <!-- Bootstrap core JavaScript-->
-    <script src="~/Admin/vendor/jquery/jquery.min.js"></script>
+    <script src="~/Admin/vendor/jquery/jquery.min.js"></script>s
     <script src="~/Admin/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
     <!-- Core plugin JavaScript-->

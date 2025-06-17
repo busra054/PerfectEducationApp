@@ -17,11 +17,15 @@ namespace WebApplication_Infrastructure.Data
         {
         }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            base.OnConfiguring(optionsBuilder);
-            optionsBuilder.UseSqlServer("Server=localhost,1433;Database=EducationDB2;User=SA;Password=reallyStrongPwd123;TrustServerCertificate=True", b => b.MigrationsAssembly("WebApplication_Deneme"));
-        }
+        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //{
+        //    if (!optionsBuilder.IsConfigured)
+        //    {
+        //        optionsBuilder.UseSqlServer("Server=localhost,1433;Database=EducationDB2;User=SA;Password=reallyStrongPwd123;TrustServerCertificate=True",
+        //            b => b.MigrationsAssembly("WebApplication_Deneme"));
+        //    }
+        //}
+
 
         public DbSet<Branch> Branches { get; set; }
         public DbSet<TeacherBranch> TeacherBranches { get; set; }
@@ -29,6 +33,7 @@ namespace WebApplication_Infrastructure.Data
         public DbSet<Package> Packages { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Message> Messages { get; set; }
+       
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Teacher> Teachers { get; set; }
         public DbSet<Course> Courses { get; set; }
@@ -133,18 +138,27 @@ namespace WebApplication_Infrastructure.Data
             {
                 entity.HasKey(a => a.Id);
 
-                // Student ilişkisi
                 entity.HasOne(a => a.Student)
-                    .WithMany(s => s.AppointmentsAsStudent)
-                    .HasForeignKey(a => a.StudentId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                      .WithMany(s => s.AppointmentsAsStudent)
+                      .HasForeignKey(a => a.StudentId)
+                      .OnDelete(DeleteBehavior.Restrict);
 
-                // Teacher ilişkisi
                 entity.HasOne(a => a.Teacher)
-                    .WithMany(t => t.AppointmentsAsTeacher)
-                    .HasForeignKey(a => a.TeacherId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                      .WithMany(t => t.AppointmentsAsTeacher)
+                      .HasForeignKey(a => a.TeacherId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(a => a.Package)
+                      .WithMany()    // isterseniz Package içindeki ICollection<Appointment> ile .WithMany(p=>p.Appointments) yapabilirsiniz
+                      .HasForeignKey(a => a.PackageId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(a => a.Course)
+                      .WithMany()    // isterseniz Course içindeki ICollection<Appointment> ile .WithMany(c=>c.Appointments) yapabilirsiniz
+                      .HasForeignKey(a => a.CourseId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
+
 
 
             modelBuilder.Entity<Package>()
@@ -245,72 +259,145 @@ namespace WebApplication_Infrastructure.Data
                 new Branch { Id = 10, Name = "Korece" }
             );
 
-            modelBuilder.Entity<Package>().HasData(
-               new Package
-               {
-                   Id = 1,
-                   Name = "TYT-Eğitimi Full Paket",
-                   Description = "TYT genel tüm dersler temelden gelişmişe adım adım Eğitim",
-                   Price = 14000.0m,
-               },
-new Package
-{
-    Id = 2,
-    Name = "AYT-Sayısal Eğitimi Full Paket",
-    Description = "AYT temelden gelişmişe Matematik ,Fizik, Kimya, Biyoloji Dersleri Eğitimi",
-    Price = 18000.0m,
-},
-new Package
-{
-    Id = 3,
-    Name = "AYT-Eşit Ağırlık Eğitimi",
-    Description = "AYT temelden gelişmişe Matematik ,Tarih, Coğrafya, Edebiyat Dersleri eğitimi",
-    Price = 14000.0m,
-},
-new Package
-{
-    Id = 4,
-    Name = "KPSS Kapsamlı Eğitimi ",
-    Description = "KPSS temelden gelişmişe full hazırlık paketi dersleri",
-    Price = 23000.0m,
-},
-new Package
-{
-    Id = 5,
-    Name = "DGS Kapsamlı Eğitimi",
-    Description = "DGS temelden gelişmişe full hazırlık paketi dersleri",
-    Price = 13000.0m,
-},
-new Package
-{
-    Id = 6,
-    Name = "İngilizce A1-A2 Temel Seviye Eğitim",
-    Description = "İngilizce temelden gelişmişe okuma,yazma,konuşma ve dinleme becerileri geliştirme dersleri",
-    Price = 15000.0m,
-},
-new Package
-{
-    Id = 7,
-    Name = "İspanyolca A1-A2 Temel Seviye Eğitim",
-    Description = "İspanyolca temelden gelişmişe okuma,yazma,konuşma ve dinleme becerileri geliştirme dersleri",
-    Price = 12000.0m,
-},
-new Package
-{
-    Id = 8,
-    Name = "Korece A1-A2 Temel Seviye Eğitim",
-    Description = "Korece temelden gelişmişe okuma,yazma,konuşma ve dinleme becerileri geliştirme dersleri",
-    Price = 16000.0m,
-},
-new Package
-{
-    Id = 9,
-    Name = "Almanca A1-B2 Temelden Orta Düzeye(İntermediate) Seviye Eğitim",
-    Description = "Almanca temelden gelişmişe okuma,yazma,konuşma ve dinleme becerileri geliştirme dersleri",
-    Price = 17000.0m,
-}
 
-                );
+            modelBuilder.Entity<Package>().HasData(
+            new Package
+            {
+                Id = 1,
+                Name = "TYT-Eğitimi Full Paket",
+                Description = "TYT ve AYT tüm konuları kapsayan, eğitim, canlı yayınlar ve deneme sınavlarıyla eksiksiz hazırlık.",
+                OriginalPrice = 35000.00m,
+                DiscountRate = 30,
+                Price = 24500.00m,
+                BannerText = "Her Şey Dahil",
+                Feature1 = "100 Soru Sorma Hakkı",
+                Feature2 = "PDF Özet Notlar",
+                Feature3 = "Videolu Deneme Sınavları",
+                Feature4 = "Yapay Zeka Asistanı",
+                CoverImagePath = "/img/1.jpg"
+            },
+            new Package
+            {
+                Id = 2,
+                Name = "AYT-Sayısal Eğitimi Full Paket",
+                Description = "TYT konularına hızlı tekrar ve yoğun soru çözümü içeren pratik paket.",
+                OriginalPrice = 18000.00m,
+                DiscountRate = 20,
+                Price = 14400.00m,
+                BannerText = "Kampanyalı",
+                Feature1 = "50 Canlı Soru Saati",
+                Feature2 = "40 Test Denemesi",
+                Feature3 = "PDF Özet Notlar",
+                Feature4 = "Yapay Zeka Asistanı",
+                CoverImagePath = "/img/2.jpg"
+            },
+            new Package
+            {
+                Id = 3,
+                Name = "AYT-Eşit Ağırlık Eğitimi",
+                Description = "Matematik, Fizik, Kimya ve Biyoloji konularını içeren kapsamlı sayısal paket.",
+                OriginalPrice = 30000.00m,
+                DiscountRate = 25,
+                Price = 22500.00m,
+                BannerText = "İndirimli",
+                Feature1 = "80 Deneme Sınavı",
+                Feature2 = "Canlı Soru Çözümü",
+                Feature3 = "PDF Özet Notlar",
+                Feature4 = "Yapay Zeka Asistanı",
+                CoverImagePath = "/img/3.jpg"
+            },
+            new Package
+            {
+                Id = 4,
+                Name = "KPSS Kapsamlı Eğitimi",
+                Description = "Matematik, Edebiyat, Tarih ve Coğrafya derslerini kapsayan eşit ağırlık paketi.",
+                OriginalPrice = 28000.00m,
+                DiscountRate = 25,
+                Price = 21000.00m,
+                BannerText = "Kampanyalı",
+                Feature1 = "75 Deneme Sınavı",
+                Feature2 = "Video Çözümler",
+                Feature3 = "PDF Özet Notlar",
+                Feature4 = "Yapay Zeka Asistanı",
+                CoverImagePath = "/img/4.jpg"
+            },
+            new Package
+            {
+                Id = 5,
+                Name = "DGS Kapsamlı Eğitimi",
+                Description = "Genel Yetenek ve Genel Kültür derslerinden oluşan KPSS hazırlık paketi.",
+                OriginalPrice = 25000.00m,
+                DiscountRate = 28,
+                Price = 18000.00m,
+                BannerText = "Her Şey Dahil",
+                Feature1 = "60 Deneme Sınavı",
+                Feature2 = "Video Anlatım",
+                Feature3 = "PDF Özet Notlar",
+                Feature4 = "Yapay Zeka Asistanı",
+                CoverImagePath = "/img/5.jpg"
+            },
+            new Package
+            {
+                Id = 6,
+                Name = "İngilizce A1-A2 Temel Seviye Eğitim",
+                Description = "Dikey Geçiş Sınavı için tüm başlıkları kapsayan hazırlık paketi.",
+                OriginalPrice = 20000.00m,
+                DiscountRate = 20,
+                Price = 16000.00m,
+                BannerText = "Kampanyalı",
+                Feature1 = "50 Deneme Sınavı",
+                Feature2 = "PDF Özet Notlar",
+                Feature3 = "Video Çözümler",
+                Feature4 = "Yapay Zeka Asistanı",
+                CoverImagePath = "/img/6.jpg"
+            },
+            new Package
+            {
+                Id = 7,
+                Name = "İspanyolca A1-A2 Temel Seviye Eğitim",
+                Description = "Okuma, yazma, konuşma ve dinleme pratiği ile A1-A2 seviyesine hazırlık.",
+                OriginalPrice = 15000.00m,
+                DiscountRate = 15,
+                Price = 12750.00m,
+                BannerText = "İndirimli",
+                Feature1 = "Canlı Konuşma Seansları",
+                Feature2 = "PDF Eğitim Materyalleri",
+                Feature3 = "Kısa Video Dersler",
+                Feature4 = "Yapay Zeka Asistanı",
+                CoverImagePath = "/img/7.jpg"
+            },
+            new Package
+            {
+                Id = 8,
+                Name = "Korece A1-A2 Temel Seviye Eğitim",
+                Description = "Temel Korece becerilerini geliştiren A1-A2 paketi.",
+                OriginalPrice = 14000.00m,
+                DiscountRate = 15,
+                Price = 11900.00m,
+                BannerText = "Kampanyalı",
+                Feature1 = "Konuşma Kulübü",
+                Feature2 = "PDF Notlar",
+                Feature3 = "Video Dersler",
+                Feature4 = "Yapay Zeka Asistanı",
+                CoverImagePath = "/img/8.jpg"
+            },
+            new Package
+            {
+                Id = 9,
+                Name = "Almanca A1-B2 Temelden Orta Düzeye(İntermediate) Seviye Eğitim",
+                Description = "İlk seviye Korece pratik ve temel dil bilgisi paketi.",
+                OriginalPrice = 16000.00m,
+                DiscountRate = 15,
+                Price = 13600.00m,
+                BannerText = "Her Şey Dahil",
+                Feature1 = "Karakter Tanıma Dersleri",
+                Feature2 = "PDF Eğitim Seti",
+                Feature3 = "Video Anlatım",
+                Feature4 = "Yapay Zeka Asistanı",
+                CoverImagePath = "/img/9.jpg"
+            }
+        );
+
         }
 
         public DbSet<WebApplication_Domain.Entities.Course> Course { get; set; } = default!;

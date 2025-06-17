@@ -13,11 +13,56 @@ namespace WebApplication_Deneme.Controllers
     public class CourseMaterialsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _env;
 
-        public CourseMaterialsController(ApplicationDbContext context)
+
+        public CourseMaterialsController(ApplicationDbContext context, IWebHostEnvironment env)
         {
             _context = context;
+            _env = env;
         }
+
+        // GET: CourseMaterials/Preview/5
+        public async Task<IActionResult> Preview(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var material = await _context.CourseMaterials
+                .Include(c => c.Course)
+                .Include(c => c.UploadedBy)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (material == null) return NotFound();
+            return View(material);
+        }
+
+        // GET: CourseMaterials/Download/5
+        public async Task<IActionResult> Download(int id)
+        {
+            var material = await _context.CourseMaterials.FindAsync(id);
+            if (material == null) return NotFound();
+
+            var uploads = Path.Combine(_env.WebRootPath, "uploads");
+            var filePath = Path.Combine(uploads, material.FilePath);
+            if (!System.IO.File.Exists(filePath)) return NotFound();
+
+            var ext = Path.GetExtension(material.FilePath).ToLowerInvariant();
+            var contentType = ext switch
+            {
+                ".pdf" => "application/pdf",
+                ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                ".pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                ".mp4" => "video/mp4",
+                ".jpg" => "image/jpeg",
+                ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                _ => "application/octet-stream"
+            };
+
+            return PhysicalFile(filePath, contentType, Path.GetFileName(filePath));
+        }
+
 
         // GET: CourseMaterials
         public async Task<IActionResult> Index()

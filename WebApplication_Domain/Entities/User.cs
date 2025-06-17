@@ -12,11 +12,19 @@ namespace WebApplication_Domain.Entities
         [Required(ErrorMessage = "Rol zorunludur")]
         public string Role { get; set; }
 
+        public string? Biography { get; set; }            // Özgeçmiş
+        public string? ProfileImagePath { get; set; }     // Profil resmi
+        public DateTime? EnrollmentDate { get; set; }     // Kaydolma tarihi
+        public string? Certifications { get; set; }       // Sertifikalar
 
 
         // Relationships
         public Teacher? TeacherProfile { get; set; }
         public Student? StudentProfile { get; set; }
+        public string? InstagramUrl { get; set; }
+        public string? TwitterUrl { get; set; }
+        public string? FacebookUrl { get; set; }
+
         public ICollection<AssignmentSubmission>? Submissions { get; set; }
         public ICollection<TeacherBranch> TeacherBranches { get; set; } = new List<TeacherBranch>();
         public ICollection<Appointment> AppointmentsAsStudent { get; set; } = new List<Appointment>();

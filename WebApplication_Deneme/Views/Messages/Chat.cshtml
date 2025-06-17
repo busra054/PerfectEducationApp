@@ -1,0 +1,237 @@
+﻿@model List<WebApplication_Domain.Entities.Message>
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+
+@{
+    Layout = User.IsInRole("Öğretmen") ? "_TeacherLayout" : "_StudentLayout";
+    var meId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value);
+    var otherId = (int)ViewBag.OtherUserId;
+    var otherName = (string)ViewBag.OtherUserName;
+    var antiforgeryTokenSet = Antiforgery.GetAndStoreTokens(Context);
+    var requestVerificationToken = antiforgeryTokenSet.RequestToken;
+}
+
+<div class="mb-3">
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Geri
+    </a>
+</div>
+
+<h3>@otherName ile Sohbet</h3>
+
+<div id="messagesList" class="border p-3 mb-3" style="height:400px; overflow-y:auto;">
+    @foreach (var msg in Model.Where(m =>
+    !(m.SenderId == meId && m.IsDeletedBySender) &&
+    !(m.ReceiverId == meId && m.IsDeletedByReceiver)))
+    {
+        var isMine = msg.SenderId == meId;
+        <div class="d-flex mb-2 @(isMine ? "justify-content-end" : "justify-content-start") message-container" data-id="@msg.Id">
+            <div class="message-wrapper @(isMine ? "bg-primary text-white" : "bg-light border")">
+                @msg.MessageText
+                <div class="text-muted small text-end">@msg.SentDate.ToString("HH:mm")</div>
+            </div>
+
+            @if (isMine && (User.IsInRole("Öğretmen") || User.IsInRole("Öğrenci")))
+            {
+                <div class="message-actions ms-2">
+                    <button class="btn btn-sm btn-warning"
+                            onclick="editMessage(@msg.Id, '@msg.MessageText.Replace("'", "\\'").Replace("\r", "").Replace("\n", "")')"
+                            title="Düzenle">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('Mesajı silmek istediğinizden emin misiniz?');">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@msg.Id" />
+                        <button type="submit" class="btn btn-sm btn-danger" title="Sil">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </form>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<div class="input-group mb-3">
+    <input type="text" id="messageInput" class="form-control" placeholder="Mesajınız..." />
+    <button id="sendButton" class="btn btn-success">Gönder</button>
+</div>
+
+<style>
+    .message-wrapper {
+        padding: 8px 12px;
+        border-radius: 18px;
+        max-width: 70%;
+        word-wrap: break-word;
+        font-size: 0.9rem;
+        position: relative;
+    }
+
+        .message-wrapper.bg-primary {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        .message-wrapper.bg-light {
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            color: #212529;
+        }
+
+    .message-actions {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .message-container:hover .message-actions {
+        opacity: 1;
+        pointer-events: auto;
+    }
+</style>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+        const meId = @meId;
+        const otherId = @otherId;
+        const antiforgeryToken = '@requestVerificationToken';
+
+        let editingMessageId = null;
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chathub")
+            .build();
+
+        connection.on("ReceiveMessage", (senderId, message, time, messageId) => {
+            // Aynı ID'ye sahip mesaj zaten varsa tekrar ekleme
+            if (document.querySelector(`.message-container[data-id='${messageId}']`)) {
+                return;
+            }
+
+            const isMine = senderId === meId;
+            const wrapper = document.createElement("div");
+            wrapper.className = "d-flex mb-2 message-container " + (isMine ? "justify-content-end" : "justify-content-start");
+            wrapper.setAttribute("data-id", messageId);
+            wrapper.innerHTML = `
+                <div class="message-wrapper position-relative p-2 rounded-pill ${isMine ? "bg-primary text-white" : "bg-light border"}">
+                    ${message}
+                    <div class="text-muted small text-end">${time}</div>
+                </div>
+                ${isMine ? `
+                <div class="message-actions ms-2">
+                    <button class="btn btn-sm btn-warning" title="Düzenle" onclick="editMessage(${messageId}, '${message.replace(/'/g, "\\'").replace(/\r?\n/g, "")}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <form action="/Messages/Delete" method="post" class="d-inline" onsubmit="return confirm('Mesajı silmek istediğinizden emin misiniz?');">
+                        <input name="__RequestVerificationToken" type="hidden" value="${antiforgeryToken}" />
+                        <input type="hidden" name="id" value="${messageId}" />
+                        <button type="submit" class="btn btn-sm btn-danger" title="Sil">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </form>
+                </div>` : ''}
+            `;
+            document.getElementById("messagesList").appendChild(wrapper);
+            document.getElementById("messagesList").scrollTop = document.getElementById("messagesList").scrollHeight;
+        });
+
+        connection.start().catch(console.error);
+
+        function sendNewMessage() {
+            const input = document.getElementById("messageInput");
+            const msg = input.value.trim();
+            if (!msg) return;
+            connection.invoke("SendMessage", meId, otherId, msg)
+                .then(() => { input.value = ""; })
+                .catch(console.error);
+        }
+
+        document.getElementById("sendButton").onclick = () => {
+            if (editingMessageId) {
+                const input = document.getElementById("messageInput");
+                const newText = input.value.trim();
+                if (!newText) return alert("Mesaj boş olamaz.");
+
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                fetch("@Url.Action("Edit", "Messages")", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "RequestVerificationToken": token
+                    },
+                    body: new URLSearchParams({ id: editingMessageId, messageText: newText })
+                })
+                    .then(res => {
+                        if (!res.ok) throw new Error("Mesaj güncellenemedi.");
+                        return res.json();
+                    })
+                    .then(data => {
+                        updateMessageInUI(editingMessageId, data.messageText);
+                        editingMessageId = null;
+                        input.value = "";
+                        document.getElementById("sendButton").textContent = "Gönder";
+                    })
+                    .catch(err => alert(err.message));
+            } else {
+                sendNewMessage();
+            }
+        };
+
+        function editMessage(id, oldText) {
+            editingMessageId = id;
+            const input = document.getElementById("messageInput");
+            input.value = oldText;
+            input.focus();
+
+            document.getElementById("sendButton").textContent = "Güncelle";
+        }
+
+        function updateMessageInUI(id, newText) {
+            const messagesList = document.getElementById("messagesList");
+            const msgWrapper = messagesList.querySelector(`.message-container[data-id='${id}']`);
+            if (!msgWrapper) return;
+
+            // Mesaj metnini güncelle
+            const msgDiv = msgWrapper.querySelector(".message-wrapper");
+            if (msgDiv) {
+                msgDiv.textContent = newText;
+                // Yeni saat bilgisini ekleyelim
+                const timeDiv = document.createElement("div");
+                timeDiv.className = "text-muted small text-end";
+                const now = new Date();
+                timeDiv.textContent = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+                msgDiv.appendChild(timeDiv);
+            }
+        }
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            fetch("/Messages/MarkMessagesAsRead", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "RequestVerificationToken": antiforgeryToken
+                },
+                body: JSON.stringify({ otherUserId: otherId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Global mesaj sayacını güncelle
+                    const counter = document.getElementById("messageCounter");
+                    if (counter) {
+                        counter.innerText = data.unreadCount;
+                        counter.style.display = data.unreadCount > 0 ? "inline-block" : "none";
+                    }
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        });
+    </script>
+
+}

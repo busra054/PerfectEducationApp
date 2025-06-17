@@ -1,47 +1,128 @@
 ﻿@model WebApplication_Domain.Entities.Package
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Paket Düzenle";
     Layout = User.IsInRole("Öğretmen") ? "_TeacherLayout" :
-         User.IsInRole("Öğrenci") ? "_StudentLayout" :
-         User.IsInRole("Admin") ? "_AdminLayout" : "_Layout";
+             User.IsInRole("Öğrenci") ? "_StudentLayout" :
+             User.IsInRole("Admin") ? "_AdminLayout" : "_Layout";
 }
 
-<h1>Edit</h1>
+<div class="container mt-5">
+    <h1 class="mb-4">Paket Düzenle</h1>
 
-<h4>Package</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Price" class="control-label"></label>
-                <input asp-for="Price" class="form-control" />
-                <span asp-validation-for="Price" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+    <div class="card shadow border-0 rounded-3">
+        <div class="card-body p-4">
+            <form asp-action="Edit">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                <input type="hidden" asp-for="Id" />
+
+                <div class="row g-3">
+                    <!-- Temel Bilgiler -->
+                    <div class="col-md-6">
+                        <h4 class="mb-3">Temel Bilgiler</h4>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Name" class="form-control" placeholder="Paket Adı">
+                            <label asp-for="Name" class="form-label"></label>
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <textarea asp-for="Description" class="form-control" placeholder="Açıklama" style="height: 120px;"></textarea>
+                            <label asp-for="Description" class="form-label"></label>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="CoverImagePath" class="form-control" placeholder="Kapak Görseli URL">
+                            <label asp-for="CoverImagePath" class="form-label"></label>
+                            <span asp-validation-for="CoverImagePath" class="text-danger small"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="BannerText" class="form-control" placeholder="Banner Metni">
+                            <label asp-for="BannerText" class="form-label"></label>
+                            <span asp-validation-for="BannerText" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- Fiyatlandırma ve Özellikler -->
+                    <div class="col-md-6">
+                        <h4 class="mb-3">Fiyatlandırma</h4>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="OriginalPrice" class="form-control" placeholder="Orijinal Fiyat">
+                                    <label asp-for="OriginalPrice" class="form-label"></label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="DiscountRate" class="form-control" placeholder="İndirim Oranı">
+                                    <label asp-for="DiscountRate" class="form-label"></label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-floating mb-4">
+                            <input asp-for="Price" class="form-control" placeholder="Fiyat">
+                            <label asp-for="Price" class="form-label"></label>
+                            <span asp-validation-for="Price" class="text-danger small"></span>
+                        </div>
+
+                        <h4 class="mb-3">Özellikler</h4>
+
+                        <div class="form-floating mb-2">
+                            <input asp-for="Feature1" class="form-control" placeholder="Özellik 1">
+                            <label class="form-label">❓ Soru Hakkı</label>
+                        </div>
+
+                        <div class="form-floating mb-2">
+                            <input asp-for="Feature2" class="form-control" placeholder="Özellik 2">
+                            <label class="form-label">📄 PDF Notlar</label>
+                        </div>
+
+                        <div class="form-floating mb-2">
+                            <input asp-for="Feature3" class="form-control" placeholder="Özellik 3">
+                            <label class="form-label">🎥 Video İçerik</label>
+                        </div>
+
+                        <div class="form-floating mb-2">
+                            <input asp-for="Feature4" class="form-control" placeholder="Özellik 4">
+                            <label class="form-label">🧠 Ekstra Özellik</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Vazgeç
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // İndirim oranına göre fiyat hesaplama
+        document.getElementById('DiscountRate').addEventListener('input', function() {
+            const discountRate = parseFloat(this.value) || 0;
+            const originalPrice = parseFloat(document.getElementById('OriginalPrice').value) || 0;
+
+            if (discountRate > 0 && originalPrice > 0) {
+                const discountedPrice = originalPrice * (1 - discountRate / 100);
+                document.getElementById('Price').value = discountedPrice.toFixed(2);
+            }
+        });
+    </script>
 }

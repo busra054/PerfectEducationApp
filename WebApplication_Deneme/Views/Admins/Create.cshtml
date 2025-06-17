@@ -1,39 +1,51 @@
 ﻿@model WebApplication_Domain.Entities.Admin
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Yeni Admin Oluştur";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h1>Create</h1>
+<h1>Yeni Admin Oluştur</h1>
 
-<h4>Admin</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="AdminName" class="control-label"></label>
-                <input asp-for="AdminName" class="form-control" />
-                <span asp-validation-for="AdminName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="AdminPassword" class="control-label"></label>
-                <input asp-for="AdminPassword" class="form-control" />
-                <span asp-validation-for="AdminPassword" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+@foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+{
+    <div class="alert alert-danger">@error.ErrorMessage</div>
+}
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <div class="form-group mb-3">
+        <label for="Name" class="form-label">İsim</label>
+        <input name="Name" type="text" class="form-control" required />
     </div>
-</div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+    <div class="form-group mb-3">
+        <label for="Email" class="form-label">Email</label>
+        <input name="Email" type="email" class="form-control" required />
+    </div>
+
+    <div class="form-group mb-4">
+        <label for="password" class="form-label">Şifre</label>
+        <input name="password" type="password" class="form-control" required minlength="8" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Oluştur</button>
+    <a asp-action="Index" class="btn btn-secondary ms-2">Geri Dön</a>
+</form>
+
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

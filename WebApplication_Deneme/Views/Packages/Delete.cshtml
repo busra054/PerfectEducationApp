@@ -1,42 +1,104 @@
 ﻿@model WebApplication_Domain.Entities.Package
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Paket Sil";
     Layout = User.IsInRole("Öğretmen") ? "_TeacherLayout" :
-         User.IsInRole("Öğrenci") ? "_StudentLayout" :
-         User.IsInRole("Admin") ? "_AdminLayout" : "_Layout";
+             User.IsInRole("Öğrenci") ? "_StudentLayout" :
+             User.IsInRole("Admin") ? "_AdminLayout" : "_Layout";
 }
 
-<h1>Delete</h1>
+<div class="container mt-5">
+    <h1 class="mb-4">Paket Sil</h1>
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>Package</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Price)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Price)
-        </dd>
-    </dl>
-    
+    <div class="alert alert-danger" role="alert">
+        <h4 class="alert-heading">Bu paketi silmek istediğinize emin misiniz?</h4>
+        <p>Bu işlem geri alınamaz. Paketle ilişkili tüm veriler kalıcı olarak silinecektir.</p>
+    </div>
+
+    <div class="card shadow border-danger mb-4">
+        <div class="card-header bg-danger text-white py-3">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-exclamation-triangle me-2"></i>@Model.Name
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    @if (!string.IsNullOrEmpty(Model.CoverImagePath))
+                    {
+                        <img src="@Model.CoverImagePath" class="img-fluid rounded mb-3" alt="@Model.Name">
+                    }
+                    else
+                    {
+                        <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <i class="fas fa-box-open fa-3x text-secondary"></i>
+                        </div>
+                    }
+                </div>
+                <div class="col-md-8">
+                    <dl class="row">
+                        <dt class="col-sm-4">Açıklama:</dt>
+                        <dd class="col-sm-8">@Model.Description</dd>
+
+                        <dt class="col-sm-4">Fiyat:</dt>
+                        <dd class="col-sm-8">
+                            @if (Model.DiscountRate.HasValue && Model.DiscountRate > 0)
+                            {
+                                <span class="text-muted text-decoration-line-through me-2">
+                                    @Model.OriginalPrice?.ToString("N2") TL
+                                </span>
+                            }
+                            <span class="fw-bold text-primary">@Model.Price.ToString("N2") TL</span>
+                            @if (Model.DiscountRate.HasValue && Model.DiscountRate > 0)
+                            {
+                                <span class="badge bg-success ms-2">%@Model.DiscountRate İndirim</span>
+                            }
+                        </dd>
+
+                        @if (!string.IsNullOrEmpty(Model.BannerText))
+                        {
+                            <dt class="col-sm-4">Banner:</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge bg-info">@Model.BannerText</span>
+                            </dd>
+                        }
+
+                        <dt class="col-sm-4">Özellikler:</dt>
+                        <dd class="col-sm-8">
+                            <ul class="list-unstyled">
+                                @if (!string.IsNullOrEmpty(Model.Feature1))
+                                {
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>@Model.Feature1</li>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Feature2))
+                                {
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>@Model.Feature2</li>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Feature3))
+                                {
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>@Model.Feature3</li>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Feature4))
+                                {
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>@Model.Feature4</li>
+                                }
+                            </ul>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <form asp-action="Delete">
         <input type="hidden" asp-for="Id" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
+        <div class="d-flex justify-content-between">
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Vazgeç
+            </a>
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash-alt me-2"></i>Kalıcı Olarak Sil
+            </button>
+        </div>
     </form>
 </div>

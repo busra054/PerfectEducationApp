@@ -25,6 +25,24 @@ namespace WebApplication_Deneme.Controllers
             _userManager = userManager;
         }
 
+        public async Task<IActionResult> Profile()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return NotFound();
+
+            var model = new UserProfileViewModel
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                Role = user.Role,
+                Biography = user.Biography,
+                ExistingCertificationPath = user.Certifications,
+                ExistingProfileImagePath = user.ProfileImagePath
+            };
+            return View(model);
+        }
+
 
         // GET: Users
         public async Task<IActionResult> Index()
@@ -94,17 +112,17 @@ namespace WebApplication_Deneme.Controllers
                 // Rol atama
                 await _userManager.AddToRoleAsync(newUser, user.Role);
 
-                //if (user.Role == "Öğretmen")
-                //{
-                //    var teacherRequest = new TeacherRequest
-                //    {
-                //        UserId = newUser.Id,
-                //        RequestDate = DateTime.Now,
-                //        Status = RequestStatus.Pending
-                //    };
-                //    // Yeni oluşturulan kullanıcının ID'si ile başvuru sayfasına yönlendir
-                //    return RedirectToAction("Apply", "TeacherRequests", new { userId = newUser.Id });
-                //}
+                if (user.Role == "Öğretmen")
+                {
+                    var teacherRequest = new TeacherRequest
+                    {
+                        UserId = newUser.Id,
+                        RequestDate = DateTime.Now,
+                        Status = RequestStatus.Pending
+                    };
+                    // Yeni oluşturulan kullanıcının ID'si ile başvuru sayfasına yönlendir
+                    return RedirectToAction("Apply", "TeacherRequests", new { userId = newUser.Id });
+                }
 
                 TempData["SuccessMessage"] = "Kullanıcı başarıyla oluşturuldu!";
                 return RedirectToAction("Index", "Account");
@@ -180,14 +198,12 @@ namespace WebApplication_Deneme.Controllers
             {
                 return NotFound();
             }
-
             var user = await _context.Users
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (user == null)
             {
                 return NotFound();
             }
-
             return View(user);
         }
 

@@ -6,9 +6,6 @@ namespace WebApplication_Domain.Entities
 {
     public class Admin : IdentityUser<int>
     {
-        [Key]
-        public int AdminId { get; set; }
-
         [DisplayName("Kullanıcı Adı")]
         [Required(ErrorMessage = "Bu alan boş geçilemez!")]
         public string AdminName { get; set; }

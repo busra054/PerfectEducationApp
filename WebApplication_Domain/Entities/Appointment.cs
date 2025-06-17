@@ -9,6 +9,18 @@ namespace WebApplication_Domain.Entities
         [Key]
         public int Id { get; set; }
 
+        [Required]
+        public int PackageId { get; set; }
+        [ForeignKey("PackageId")]
+        public Package Package { get; set; }
+
+        // Kurs ilişkisi
+        [Required]
+        public int CourseId { get; set; }
+        [ForeignKey("CourseId")]
+        public Course Course { get; set; }
+
+
         public int StudentId { get; set; }
         [ForeignKey("StudentId")]
         public Student Student { get; set; }
@@ -20,5 +32,8 @@ namespace WebApplication_Domain.Entities
 
         public DateTime Date { get; set; }
         public string Type { get; set; }
+
+        [StringLength(500)]
+        public string? ZoomLink { get; set; }
     }
 }

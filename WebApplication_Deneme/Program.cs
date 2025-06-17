@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
+ï»¿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using WebApplication_Domain.Entities;
@@ -7,44 +7,40 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
-// Dosya yükleme limiti (20MB) Öðretmenlerin sertifikalarý için 
+// Dosya yÃ¼kleme limiti (20MB) Ã–ÄŸretmenlerin sertifikalarÄ± iÃ§in 
 builder.Services.Configure<FormOptions>(options =>
 {
     options.MultipartBodyLengthLimit = 1024*1024*50;
 });
 
 
-
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR(); // MesajlaÅŸma iÃ§in ekledik.
+
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")).EnableSensitiveDataLogging()); // Use connection string from appsettings.json
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlOptions => sqlOptions.MigrationsAssembly("WebApplication_Deneme")
+    ).EnableSensitiveDataLogging());
 
 // Program.cs
 builder.Services.AddIdentity<User, IdentityRole<int>>() // Rol tipini belirtin
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-// Identity'in varsayýlan cookie ayarlarýný özelleþtirin:
+// Cookie yapÄ±landÄ±rmasÄ± (tek ÅŸema, varsayÄ±lan yapÄ±)
 builder.Services.ConfigureApplicationCookie(options =>
 {
-   // options.LoginPath = "/Account/Index";
-    options.LoginPath = "/Admins/Login"; // Giriþ yapmazsa buraya yönlendirsin
-
+    options.LoginPath = "/Account/Index"; // GiriÅŸ yapÄ±lmazsa buraya yÃ¶nlendir
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
 
-builder.Services.AddAuthentication()
-    .AddCookie("AdminCookies", options => // Adminler için yeni cookie scheme
-    {
-        options.LoginPath = "/Admins/Login";
-        options.AccessDeniedPath = "/Admins/AccessDenied";
-    });
-
-// Session desteði ekleniyor (kullanýcý bilgilerini tutabilmek için)
+// Session desteÄŸi ekleniyor (kullanÄ±cÄ± bilgilerini tutabilmek iÃ§in)
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(60); // Oturum süresi
+    options.IdleTimeout = TimeSpan.FromMinutes(60); // Oturum sÃ¼resi
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
@@ -58,7 +54,7 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
-        var roles = new[] { "Admin", "Öðretmen", "Öðrenci" };
+        var roles = new[] { "Admin", "Ã–ÄŸretmen", "Ã–ÄŸrenci" };
 
         foreach (var role in roles)
         {
@@ -69,7 +65,7 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Rol oluþturma hatasý");
+        logger.LogError(ex, "Rol oluÅŸturma hatasÄ±");
     }
 }
 // Configure the HTTP request pipeline.
@@ -92,5 +88,7 @@ app.UseSession(); // Session middleware'ini burada ekleyin
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapHub<WebApplication_Deneme.Hubs.ChatHub>("/chathub");
 
 app.Run();

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using WebApplication_Infrastructure.Data;
 using WebApplication_Domain.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebApplication_Deneme.Controllers
 {
@@ -24,33 +25,38 @@ namespace WebApplication_Deneme.Controllers
         {
             return View();
         }
-
+        // POST: /Account/Index
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Index(LoginViewModel model)
         {
             if (ModelState.IsValid)
             {
-                // Identity'nin doğru şifre kontrolü
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Kullanıcı bulunamadı.");
+                    return View(model);
+                }
+
                 var result = await _signInManager.PasswordSignInAsync(
-                    model.Email,
+                    user,
                     model.Password,
-                    isPersistent: false,
+                    isPersistent: model.RememberMe,
                     lockoutOnFailure: false
                 );
 
                 if (result.Succeeded)
                 {
-                    var user = await _userManager.FindByEmailAsync(model.Email);
+                    var roles = await _userManager.GetRolesAsync(user);
 
-                    // Rol kontrolü
-                    if (await _userManager.IsInRoleAsync(user, "Admin"))
+                    if (roles.Contains("Admin"))
                         return RedirectToAction("Index", "Admins");
 
-                    if (await _userManager.IsInRoleAsync(user, "Öğrenci"))
+                    if (roles.Contains("Öğrenci"))
                         return RedirectToAction("MyCourses", "Students");
 
-                    if (await _userManager.IsInRoleAsync(user, "Öğretmen"))
+                    if (roles.Contains("Öğretmen"))
                         return RedirectToAction("MyCourses", "Teachers");
 
                     return RedirectToAction("Index", "Home");
@@ -58,18 +64,24 @@ namespace WebApplication_Deneme.Controllers
 
                 ModelState.AddModelError(string.Empty, "Geçersiz giriş denemesi.");
             }
+
             return View(model);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user != null)
-            {
-                await _userManager.UpdateSecurityStampAsync(user); // Oturumu geçersiz kıl
-            }
+            await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
+
+
+        [AllowAnonymous]
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
+
     }
 }

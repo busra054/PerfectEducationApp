@@ -1,0 +1,148 @@
+﻿@model WebApplication_Domain.Entities.UserProfileViewModel
+
+@{
+    ViewData["Title"] = "Profilim";
+    Layout = User.IsInRole("Öğretmen") ? "_TeacherLayout"
+           : User.IsInRole("Öğrenci") ? "_StudentLayout"
+           : "_Layout";
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<h2>Profilim</h2>
+
+<form asp-action="Index" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+
+    <div class="row">
+        <!-- SOL: resim + sosyal ikonlar -->
+        <div class="col-md-4 text-center">
+            <div class="mb-3">
+                @if (!string.IsNullOrEmpty(Model.ExistingProfileImagePath))
+                {
+                    <img src="@Url.Content(Model.ExistingProfileImagePath)"
+                         class="img-thumbnail rounded-circle"
+                         style="width:200px; height:200px; object-fit:cover;" />
+                }
+                else
+                {
+                    <div class="bg-secondary text-white d-flex align-items-center justify-content-center rounded-circle"
+                         style="width:200px; height:200px;">
+                        <i class="fas fa-user fa-3x"></i>
+                    </div>
+                }
+            </div>
+            <div class="mb-3">
+                <label asp-for="ProfileImage" class="form-label">Yeni Resim</label>
+                <input asp-for="ProfileImage" type="file" class="form-control" />
+                <span asp-validation-for="ProfileImage" class="text-danger"></span>
+            </div>
+
+            <hr />
+
+            <!-- sosyal ikonlar -->
+            <div>
+                @if (!string.IsNullOrEmpty(Model.InstagramUrl))
+                {
+                    <a href="@Model.InstagramUrl" target="_blank" class="me-2">
+                        <i class="fab fa-instagram fa-2x text-danger"></i>
+                    </a>
+                }
+                @if (!string.IsNullOrEmpty(Model.TwitterUrl))
+                {
+                    <a href="@Model.TwitterUrl" target="_blank" class="me-2">
+                        <i class="fab fa-twitter fa-2x text-info"></i>
+                    </a>
+                }
+                @if (!string.IsNullOrEmpty(Model.FacebookUrl))
+                {
+                    <a href="@Model.FacebookUrl" target="_blank" class="me-2">
+                        <i class="fab fa-facebook fa-2x text-primary"></i>
+                    </a>
+                }
+            </div>
+        </div>
+
+        <!-- SAĞ: form alanları -->
+        <div class="col-md-8">
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label">Ad Soyad</label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label">E‑posta</label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Role" class="form-label">Rol</label>
+                <input asp-for="Role" class="form-control" readonly />
+            </div>
+
+            @if (User.IsInRole("Öğretmen"))
+            {
+                <div class="mb-3">
+                    <label asp-for="Biography" class="form-label">Biyografi</label>
+                    <textarea asp-for="Biography" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="Biography" class="text-danger"></span>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.ExistingCertificationPath))
+                {
+                    <div class="mb-3">
+                        <label class="form-label">Mevcut Sertifika</label><br />
+                        <a href="@Url.Content(Model.ExistingCertificationPath)" target="_blank">İndir</a>
+                    </div>
+                }
+
+                <div class="mb-3">
+                    <label asp-for="CertificationFile" class="form-label">Yeni Sertifika (PDF/PNG/JPG)</label>
+                    <input asp-for="CertificationFile" type="file" class="form-control"
+                           accept=".pdf,.png,.jpg,.jpeg" />
+                    <span asp-validation-for="CertificationFile" class="text-danger"></span>
+                </div>
+            }
+
+            <div class="mb-3">
+                <label asp-for="NewPassword" class="form-label">Yeni Şifre</label>
+                <input asp-for="NewPassword" type="password" class="form-control" />
+                <span asp-validation-for="NewPassword" class="text-danger"></span>
+            </div>
+
+            <hr />
+
+            <h5>Sosyal Ağlar</h5>
+            <div class="mb-3">
+                <label asp-for="InstagramUrl" class="form-label">Instagram</label>
+                <input asp-for="InstagramUrl" class="form-control"
+                       placeholder="https://instagram.com/username" />
+                <span asp-validation-for="InstagramUrl" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="TwitterUrl" class="form-label">Twitter (X)</label>
+                <input asp-for="TwitterUrl" class="form-control"
+                       placeholder="https://twitter.com/username" />
+                <span asp-validation-for="TwitterUrl" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="FacebookUrl" class="form-label">Facebook</label>
+                <input asp-for="FacebookUrl" class="form-control"
+                       placeholder="https://facebook.com/username" />
+                <span asp-validation-for="FacebookUrl" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Kaydet</button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

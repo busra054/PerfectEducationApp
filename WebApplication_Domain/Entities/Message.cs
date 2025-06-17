@@ -14,5 +14,12 @@ namespace WebApplication_Domain.Entities
         // Relationships
         public User Sender { get; set; }
         public User Receiver { get; set; }
+
+        // Okunma durumu
+        public bool IsRead { get; set; } = false;
+
+
+        public bool IsDeletedBySender { get; set; } = false;
+        public bool IsDeletedByReceiver { get; set; } = false;
     }
 }

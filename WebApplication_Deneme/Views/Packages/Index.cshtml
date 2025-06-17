@@ -1,50 +1,101 @@
 ﻿@model IEnumerable<WebApplication_Domain.Entities.Package>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Paket Yönetimi";
     Layout = User.IsInRole("Öğretmen") ? "_TeacherLayout" :
-         User.IsInRole("Öğrenci") ? "_StudentLayout" :
-         User.IsInRole("Admin") ? "_AdminLayout" : "_Layout";
+             User.IsInRole("Öğrenci") ? "_StudentLayout" :
+             User.IsInRole("Admin") ? "_AdminLayout" : "_Layout";
 }
 
-<h1>Index</h1>
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Paket Yönetimi</h1>
+        <a asp-action="Create" class="btn btn-success">
+            <i class="fas fa-plus-circle me-2"></i>Yeni Paket
+        </a>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Price)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Price)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Paket Adı</th>
+                            <th>Açıklama</th>
+                            <th>Fiyat</th>
+                            <th>İndirim</th>
+                            <th>Özellikler</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.Id</td>
+                                <td>
+                                    <strong>@item.Name</strong>
+                                    @if (!string.IsNullOrEmpty(item.BannerText))
+                                    {
+                                        <div class="badge bg-danger mt-1">@item.BannerText</div>
+                                    }
+                                </td>
+                                <td class="text-truncate" style="max-width: 200px;">@item.Description</td>
+                                <td>
+                                    @if (item.DiscountRate.HasValue && item.DiscountRate > 0)
+                                    {
+                                        <div class="text-muted text-decoration-line-through small">
+                                            @item.OriginalPrice?.ToString("N2") TL
+                                        </div>
+                                    }
+                                    <span class="fw-bold">@item.Price.ToString("N2") TL</span>
+                                </td>
+                                <td>
+                                    @if (item.DiscountRate.HasValue && item.DiscountRate > 0)
+                                    {
+                                        <span class="badge bg-success">%@item.DiscountRate</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    <ul class="list-unstyled mb-0">
+                                        @if (!string.IsNullOrEmpty(item.Feature1))
+                                        {
+                                            <li class="text-truncate" style="max-width: 150px;">
+                                                <i class="fas fa-circle text-primary small me-1"></i>@item.Feature1
+                                            </li>
+                                        }
+                                        @if (!string.IsNullOrEmpty(item.Feature2))
+                                        {
+                                            <li class="text-truncate" style="max-width: 150px;">
+                                                <i class="fas fa-circle text-success small me-1"></i>@item.Feature2
+                                            </li>
+                                        }
+                                    </ul>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

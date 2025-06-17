@@ -1,0 +1,42 @@
+﻿@model IEnumerable<WebApplication_Domain.Entities.MyTeacherViewModel>
+
+@{
+    ViewData["Title"] = "Öğretmenlerim";
+    Layout = "_StudentLayout";
+}
+
+<h1 class="mb-4">Öğretmenlerim</h1>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        Henüz bir öğretmene kayıtlı kursunuz yok.
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        @foreach (var t in Model)
+        {
+            <div class="col">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">@t.Name</h5>
+                        <p class="card-text">@t.Biography</p>
+                        <h6>Dersleri:</h6>
+                        <ul class="list-unstyled">
+                            @foreach (var c in t.Courses)
+                            {
+                                <li>
+                                    <i class="fas fa-book-open text-primary"></i>
+                                    <strong>@c.Name</strong><br />
+                                    <small class="text-muted">@c.Description</small>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

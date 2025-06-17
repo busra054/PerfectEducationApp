@@ -1,0 +1,48 @@
+﻿@model IEnumerable<WebApplication_Domain.Entities.Appointment>
+
+@{
+    ViewData["Title"] = "Randevularım";
+    Layout = "_StudentLayout";
+}
+
+<h1 class="mb-4">Randevularım</h1>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-warning">@TempData["Error"]</div>
+}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Tarih</th>
+            <th>Paket</th>
+            <th>Kurs</th>
+            <th>Öğretmen</th>
+            <th>Zoom</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var appt in Model)
+        {
+            <tr>
+                <td>@appt.Date.ToString("dd.MM.yyyy HH:mm")</td>
+                <td>@appt.Package?.Name</td>
+                <td>@appt.Course?.Name</td>
+                <td>@appt.Teacher?.User?.Name</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(appt.ZoomLink))
+                    {
+                        <a asp-action="Join" class="btn btn-sm btn-primary" asp-route-id="@appt.Id" target="_blank">
+                            Toplantıya Katıl
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="text-muted">Bekleniyor</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
