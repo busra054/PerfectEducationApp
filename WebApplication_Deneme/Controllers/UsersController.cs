@@ -73,67 +73,47 @@ namespace WebApplication_Deneme.Controllers
         {
             return View();
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Name,Email,Role")] User user, string password)
         {
-            try
+            if (!ModelState.IsValid)
             {
-                if (!ModelState.IsValid)
-                {
-                    TempData["ErrorMessage"] = "Lütfen tüm zorunlu alanları doldurun";
-                    return View(user);
-                }
+                TempData["ErrorMessage"] = "Lütfen tüm zorunlu alanları doldurun";
+                return View(user);
+            }
 
-                // Yeni kullanıcı oluştur
-                var newUser = new User
-                {
-                    UserName = user.Email,
-                    Email = user.Email,
-                    Name = user.Name,
-                    Role = user.Role
-                };
+            // 1) Kullanıcı oluştur
+            var newUser = new User
+            {
+                UserName = user.Email,
+                Email = user.Email,
+                Name = user.Name,
+                Role = user.Role
+            };
+            var result = await _userManager.CreateAsync(newUser, password);
+            if (!result.Succeeded)
+            {
+                foreach (var err in result.Errors)
+                    ModelState.AddModelError("", err.Description);
+                TempData["ErrorMessage"] = "Kullanıcı oluşturulamadı.";
+                return View(user);
+            }
 
-                // Kullanıcıyı oluştur
-                var result = await _userManager.CreateAsync(newUser, password);
+            // 2) Rol atama & TeacherRequest
+            if (user.Role == "Öğretmen")
+            {
+                return RedirectToAction("Apply", "TeacherRequests", new { userId = newUser.Id });
 
-                if (!result.Succeeded)
-                {
-                    foreach (var error in result.Errors)
-                    {
-                        ModelState.AddModelError(string.Empty, error.Description);
-                    }
-                    TempData["ErrorMessage"] = "Kullanıcı oluşturulamadı: " +
-                        string.Join(", ", result.Errors.Select(e => e.Description));
-                    return View(user);
-                }
-
-                // Rol atama
+            }
+            else
+            {
+                // Diğer roller (örn. Öğrenci)
                 await _userManager.AddToRoleAsync(newUser, user.Role);
-
-                if (user.Role == "Öğretmen")
-                {
-                    var teacherRequest = new TeacherRequest
-                    {
-                        UserId = newUser.Id,
-                        RequestDate = DateTime.Now,
-                        Status = RequestStatus.Pending
-                    };
-                    // Yeni oluşturulan kullanıcının ID'si ile başvuru sayfasına yönlendir
-                    return RedirectToAction("Apply", "TeacherRequests", new { userId = newUser.Id });
-                }
-
                 TempData["SuccessMessage"] = "Kullanıcı başarıyla oluşturuldu!";
                 return RedirectToAction("Index", "Account");
             }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = "Bir hata oluştu: " + ex.Message;
-                return View(user);
-            }
         }
-
 
 
 

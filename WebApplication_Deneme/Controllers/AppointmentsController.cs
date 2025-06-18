@@ -156,21 +156,23 @@ namespace WebApplication_Deneme.Controllers
         }
 
         // GET: Appointments/Delete/5
+        [Authorize(Roles = "Öğretmen,Öğrenci,Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var appointment = await _context.Appointments
+                .Include(a => a.Package)
+                .Include(a => a.Course)
                 .Include(a => a.Student)
+                    .ThenInclude(s => s.User)
                 .Include(a => a.Teacher)
+                    .ThenInclude(t => t.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (appointment == null)
-            {
                 return NotFound();
-            }
 
             return View(appointment);
         }

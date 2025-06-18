@@ -17,7 +17,14 @@ builder.Services.Configure<FormOptions>(options =>
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR(); // Mesajlaşma için ekledik.
+builder.Services.AddHttpClient(); // OpenAI API için
 
+builder.Services.AddHttpClient("OpenAI", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["OpenAI:ApiUrl"]);
+    client.DefaultRequestHeaders.Authorization =
+        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", builder.Configuration["OpenAI:ApiKey"]);
+});
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(

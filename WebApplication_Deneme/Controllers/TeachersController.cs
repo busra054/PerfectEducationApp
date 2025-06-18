@@ -19,14 +19,38 @@ namespace WebApplication_Deneme.Controllers
         private readonly IWebHostEnvironment _env;
         private readonly UserManager<User> _userManager;
 
-        public TeachersController(
-            ApplicationDbContext context,
-            IWebHostEnvironment env,
-            UserManager<User> userManager)
+        public TeachersController(ApplicationDbContext context,IWebHostEnvironment env,UserManager<User> userManager)
         {
             _context = context;
             _env = env;
             _userManager = userManager;
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Öğretmen")]
+        public async Task<IActionResult> MyStudents()
+        {
+            // 1) Mevcut öğretmenin Id’sini al
+            var teacherId = await GetCurrentTeacherId();
+            if (teacherId == 0)
+                return Forbid();
+
+            // 2) Bu öğretmene ait kursları satın alan öğrenci kayıtlarını bul
+            var studentIds = await _context.CourseEnrollments
+                .Include(e => e.Course)
+                .Where(e => e.Course.TeacherId == teacherId)
+                .Select(e => e.StudentId)
+                .Distinct()
+                .ToListAsync();
+
+            // 3) Öğrenci tablosundan bu Id’lere karşılık gelenleri yükle (kullanıcı bilgisiyle birlikte)
+            var students = await _context.Students
+                .Include(s => s.User)
+                .Where(s => studentIds.Contains(s.Id))
+                .ToListAsync();
+
+            // 4) View’a gönder
+            return View(students);
         }
 
         [HttpGet]

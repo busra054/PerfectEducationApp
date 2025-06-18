@@ -1,0 +1,32 @@
+﻿@model IEnumerable<WebApplication_Domain.Entities.Student>
+
+@{
+    ViewData["Title"] = "Öğrencilerim";
+    Layout = User.IsInRole("Öğretmen") ? "_TeacherLayout" :
+          User.IsInRole("Öğrenci") ? "_StudentLayout" :
+          User.IsInRole("Admin") ? "_AdminLayout" : "_Layout";
+}
+
+<h1>Öğrencilerim</h1>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Öğrenci Adı</th>
+            <th>Email</th>
+            <th>Kayıt Tarihi</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var s in Model)
+        {
+            <tr>
+                <td>@s.User.Name</td>
+                <td>@s.User.Email</td>
+                <td>@s.EnrollmentDate.ToString("dd.MM.yyyy")</td>
+          
+            </tr>
+        }
+    </tbody>
+</table>

@@ -29,46 +29,62 @@ namespace WebApplication_Deneme.Controllers
         }
 
         // GET: /Students/MyTeachers
+        [HttpGet]
+        [Authorize(Roles = "Öğrenci")]
         public async Task<IActionResult> MyTeachers()
         {
-            var userId = int.Parse(_userManager.GetUserId(User));
+
+            var userId = _userManager.GetUserId(User);
+            int parsedUserId = int.Parse(userId); // parse string to int
+
             var student = await _context.Students
                 .Include(s => s.Enrollments)
                     .ThenInclude(e => e.Course)
                         .ThenInclude(c => c.Teacher)
                             .ThenInclude(t => t.User)
-                .FirstOrDefaultAsync(s => s.UserId == userId);
-            if (student == null) return Forbid();
+                .FirstOrDefaultAsync(s => s.UserId == parsedUserId);
 
-            // Distinct öğretmen listesi
+
+            if (student == null)
+                return View(new List<MyTeacherViewModel>()); // boş liste
+
+
             var teachers = student.Enrollments
                 .Select(e => e.Course.Teacher)
                 .Distinct()
                 .ToList();
 
-            // Her öğretmenin, bu öğrenciyle ilişkili derslerini de bir arada gönderelim:
             var vm = teachers.Select(t => new MyTeacherViewModel
             {
                 TeacherId = t.Id,
                 Name = t.User.Name,
                 Biography = t.Biography,
                 Courses = student.Enrollments
-                    .Where(e => e.Course.TeacherId == t.Id)
-                    .Select(e => e.Course)
-                    .ToList()
-            }).ToList();
+                                  .Where(e => e.Course.TeacherId == t.Id)
+                                  .Select(e => e.Course)
+                                  .ToList()
+            })
+            .ToList();
 
             return View(vm);
         }
 
 
-        // Öğrencinin kendi randevularını listeler
+        // GET: /Students/MyAppointments
+        [HttpGet]
+        [Authorize(Roles = "Öğrenci")]
         public async Task<IActionResult> MyAppointments()
         {
-            var userId = int.Parse(_userManager.GetUserId(User));
+
+            var userId = _userManager.GetUserId(User);
+            int parsedUserId = int.Parse(userId); // parse string to int
+
             var student = await _context.Students
-                .FirstOrDefaultAsync(s => s.UserId == userId);
-            if (student == null) return Forbid();
+                .FirstOrDefaultAsync(s => s.UserId == parsedUserId);
+
+            if (student == null)
+                return View(new List<Appointment>()); // Öğrenci kaydı yoksa boş liste dön
+
 
             var list = await _context.Appointments
                 .Include(a => a.Package)
@@ -257,10 +273,14 @@ namespace WebApplication_Deneme.Controllers
             return RedirectToAction("CourseDetails", new { id = assignment.CourseId });
         }
 
+
+        [HttpGet]
+        [Authorize(Roles = "Öğrenci")]
         public async Task<IActionResult> MyCourses()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null) return RedirectToAction("Index", "Account");
+            if (user == null)
+                return RedirectToAction("Index", "Account");
 
             var student = await _context.Students
                 .Include(s => s.Enrollments)
@@ -273,17 +293,12 @@ namespace WebApplication_Deneme.Controllers
                 .FirstOrDefaultAsync(s => s.UserId == user.Id);
 
             if (student == null)
-            {
-                ViewBag.Message = "Öğrenci profiliniz bulunamadı.";
-                return View(new List<CourseEnrollment>());
-            }
+                return View(new List<CourseEnrollment>()); // TİP UYUMLU hale getirildi ✅
+
 
             var enrollments = student.Enrollments.ToList();
-
             if (!enrollments.Any())
-            {
                 ViewBag.Message = "Henüz hiç kursa kaydınız bulunmamaktadır.";
-            }
 
             return View(enrollments);
         }

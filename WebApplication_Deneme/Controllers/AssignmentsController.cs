@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -23,12 +25,57 @@ namespace WebApplication_Deneme.Controllers
             _env = env;
         }
 
-        // GET: Assignments
+        [Authorize(Roles = "Admin,Öğretmen,Öğrenci")]
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Assignments.Include(a => a.Course);
-            return View(await applicationDbContext.ToListAsync());
+            // 1) Claim’ten gelen userId string
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // 2) String’i int’e çeviriyoruz
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                // Parse edilemediyse yetkisiz gibi davranabilirsiniz
+                return Forbid();
+            }
+
+            // 3) Sorguyu hazırla (Course → Teacher ilişkisiyle birlikte)
+            IQueryable<Assignment> query = _context.Assignments
+                .Include(a => a.Course)
+                    .ThenInclude(c => c.Teacher);
+
+            if (User.IsInRole("Öğretmen"))
+            {
+                // Teacher nav‑prop’unu include edip, int userId ile karşılaştıralım
+                var teacher = await _context.Teachers
+                    .Include(t => t.User)
+                    .FirstOrDefaultAsync(t => t.User.Id == userId);
+                if (teacher == null)
+                    return Forbid();
+
+                query = query.Where(a => a.Course.TeacherId == teacher.Id);
+            }
+            else if (User.IsInRole("Öğrenci"))
+            {
+                var student = await _context.Students
+                    .Include(s => s.User)
+                    .FirstOrDefaultAsync(s => s.User.Id == userId);
+                if (student == null)
+                    return Forbid();
+
+                query = query.Where(a =>
+                    _context.CourseEnrollments
+                        .Any(e => e.CourseId == a.CourseId && e.StudentId == student.Id)
+                );
+            }
+            // Admin: filtre yok
+
+            var assignments = await query
+                .OrderBy(a => a.DueDate)
+                .ToListAsync();
+
+            return View(assignments);
         }
+
 
         // GET: Assignments/Details/5
         public async Task<IActionResult> Details(int? id)

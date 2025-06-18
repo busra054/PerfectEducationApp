@@ -1,10 +1,11 @@
 ﻿@model WebApplication_Domain.Entities.UserProfileViewModel
 
+
 @{
     ViewData["Title"] = "Profilim";
-    Layout = User.IsInRole("Öğretmen") ? "_TeacherLayout"
-           : User.IsInRole("Öğrenci") ? "_StudentLayout"
-           : "_Layout";
+    Layout = User.IsInRole("Öğretmen") ? "_TeacherLayout" :
+         User.IsInRole("Öğrenci") ? "_StudentLayout" :
+         User.IsInRole("Admin") ? "_AdminLayout" : "_Layout";
 }
 
 @if (TempData["Success"] != null)

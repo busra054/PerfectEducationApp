@@ -161,6 +161,111 @@
         </div>
     </div>
 
+
+    <div id="aiChatContainer">
+        <div id="aiChatLabel">Yapay Zekâ Asistanına Sor</div>
+        <div id="aiChatButton" title="Yapay Zekâ Asistanı">
+            <i class="fas fa-brain fa-2x"></i>
+        </div>
+    </div>
+
+    <div id="aiChatModal">
+        <header>Asistan</header>
+        <div class="body" id="aiChatBody">
+            <div class="small text-gray-500">Merhaba! Sorunu yazıp gönder.</div>
+        </div>
+        <div class="footer">
+            <input type="text" id="aiChatInput" placeholder="Sorunuzu yazın..." />
+            <button class="send">Gönder</button>
+        </div>
+    </div>
+
+    <style>
+        /* Container ile label + butonu gruplayalım */
+        #aiChatContainer {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            text-align: center;
+            z-index: 1000;
+        }
+
+        /* Label: ikonun tam üstünde */
+        #aiChatLabel {
+            margin-bottom: 4px;
+            font-size: 0.75rem;
+            color: #4e73df;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Beyin butonu: yuvarlak, ikon-only */
+        #aiChatButton {
+            background: #4e73df;
+            border-radius: 50%;
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        /* Modal başlangıçta gizli */
+        #aiChatModal {
+            position: fixed;
+            bottom: 90px;
+            right: 24px;
+            width: 300px;
+            height: 400px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: none; 
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+            #aiChatModal header {
+                padding: 8px;
+                background: #4e73df;
+                color: white;
+                border-top-left-radius: 8px;
+                border-top-right-radius: 8px;
+            }
+
+            #aiChatModal .body {
+                flex: 1;
+                padding: 8px;
+                overflow-y: auto;
+                font-size: .9rem;
+            }
+
+            #aiChatModal .footer {
+                padding: 8px;
+                border-top: 1px solid #ddd;
+                display: flex;
+                gap: 4px;
+            }
+
+            #aiChatModal input {
+                flex: 1;
+                padding: 6px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+            }
+
+            #aiChatModal button.send {
+                background: #4e73df;
+                color: white;
+                border: none;
+                padding: 6px 12px;
+                border-radius: 4px;
+            }
+
+    </style>
+
     <!-- Scriptler -->
     <script src="~/Admin/vendor/jquery/jquery.min.js"></script>
     <script src="~/Admin/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
@@ -226,7 +331,71 @@
                     container.innerHTML = '<div class="text-center small text-gray-500">Mesajlar yüklenirken hata oluştu.</div>';
                 });
         });
+
+
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          const label = document.getElementById('aiChatLabel');
+          const btn   = document.getElementById('aiChatButton');
+          const modal = document.getElementById('aiChatModal');
+          const body  = document.getElementById('aiChatBody');
+          const input = document.getElementById('aiChatInput');
+          const send  = modal.querySelector('.send');
+
+          [label, btn].forEach(el => el.addEventListener('click', () => {
+            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+            if (modal.style.display === 'flex') input.focus();
+          }));
+
+          async function sendMessage() {
+            const prompt = input.value.trim();
+            if (!prompt) return;
+            body.innerHTML += `<div><strong>Sen:</strong> ${prompt}</div>`;
+            input.value = '';
+            body.scrollTop = body.scrollHeight;
+
+            const statusDiv = document.createElement('div');
+            statusDiv.className = 'text-muted small';
+            statusDiv.innerText = 'Gönderiliyor...';
+            body.appendChild(statusDiv);
+            body.scrollTop = body.scrollHeight;
+
+            try {
+              const res = await fetch('/api/AIChat/ask', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ prompt })
+              });
+
+              // Eğer HTTP 200 değilse
+              if (!res.ok) {
+                const text = await res.text();
+                console.error('AIChat error', res.status, text);
+                statusDiv.remove();
+                body.innerHTML += `<div class="text-danger small">
+                  Hata ${res.status}: ${text}</div>`;
+                return;
+              }
+
+              const data = await res.json();
+              statusDiv.remove();
+              body.innerHTML += `<div><strong>Asistan:</strong> ${data.answer}</div>`;
+
+            } catch (err) {
+              console.error('Fetch exception', err);
+              statusDiv.remove();
+              body.innerHTML += `<div class="text-danger small">
+                İstek gönderilemedi. Konsolu kontrol edin.</div>`;
+            }
+            body.scrollTop = body.scrollHeight;
+          }
+
+          send.addEventListener('click', sendMessage);
+          input.addEventListener('keyup', e => { if (e.key==='Enter') sendMessage(); });
+        });
+    </script>
+
 
 </body>
 </html>

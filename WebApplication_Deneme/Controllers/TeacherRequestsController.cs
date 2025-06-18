@@ -36,44 +36,30 @@ namespace WebApplication_Deneme.Controllers
             });
         }
 
-        [HttpGet]
+        // GET: TeacherRequests/CheckStatus
         public async Task<IActionResult> CheckStatus(int userId)
         {
-            // Kullanıcıyı kontrol et
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user == null)
-            {
-                TempData["ErrorMessage"] = "Kullanıcı bulunamadı!";
-                return RedirectToAction("Create", "Users");
-            }
-
-            // Başvuruyu ilişkili verilerle getir
             var request = await _context.TeacherRequests
                 .Include(r => r.User)
                 .FirstOrDefaultAsync(r => r.UserId == userId);
-
             if (request == null)
-            {
-                TempData["Message"] = "Henüz başvurunuz bulunmamaktadır.";
                 return RedirectToAction("Apply", new { userId });
-            }
 
             return View(request);
         }
 
+        // GET: TeacherRequests/Apply?userId=123
+        [HttpGet]
         public async Task<IActionResult> Apply(int userId)
         {
-            var existingRequest = await _context.TeacherRequests
+            // Zaten bekleyen başvuru varsa durumu göster
+            var existing = await _context.TeacherRequests
                 .FirstOrDefaultAsync(r => r.UserId == userId && r.Status == RequestStatus.Pending);
-
-            if (existingRequest != null)
-            {
+            if (existing != null)
                 return RedirectToAction("CheckStatus", new { userId });
-            }
 
-            // Branşları çekerken Id > 0 kontrolü ekleyin
+            // Branşları getir
             var branches = await _context.Branches.Where(b => b.Id > 0).ToListAsync();
-
             if (!branches.Any())
             {
                 TempData["ErrorMessage"] = "Sistemde kayıtlı branş bulunamadı!";
@@ -84,90 +70,81 @@ namespace WebApplication_Deneme.Controllers
             return View(new TeacherRequest { UserId = userId });
         }
 
+
+
+        // POST: TeacherRequests/Apply
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Apply(int userId,
             [Bind("UserId,Biography,ExperienceYears,BranchId")] TeacherRequest request,
             IFormFile certificationFile)
         {
+            // Model doğrulama
             if (!ModelState.IsValid)
             {
-                var branches = await _context.Branches.ToListAsync();
-                ViewBag.Branches = new SelectList(branches, "Id", "Name", request.BranchId);
+                ViewBag.Branches = new SelectList(await _context.Branches.ToListAsync(), "Id", "Name", request.BranchId);
                 return View(request);
             }
 
-            try
+            // Kullanıcı kontrolü
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
             {
-                var user = await _userManager.FindByIdAsync(userId.ToString());
-                if (user == null)
-                {
-                    TempData["ErrorMessage"] = "Kullanıcı bulunamadı!";
-                    return RedirectToAction("Create", "Users");
-                }
-
-                if (certificationFile == null)
-                {
-                    ModelState.AddModelError("CertificationFile", "Sertifika dosyası gereklidir!");
-                    ViewBag.Branches = new SelectList(await _context.Branches.ToListAsync(), "Id", "Name");
-                    return View(request);
-                }
-
-                if (Path.GetExtension(certificationFile.FileName).ToLower() != ".pdf")
-                {
-                    ModelState.AddModelError("CertificationFile", "Sadece PDF dosyaları kabul edilir!");
-                    ViewBag.Branches = new SelectList(await _context.Branches.ToListAsync(), "Id", "Name");
-                    return View(request);
-                }
-
-                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "certificates");
-                Directory.CreateDirectory(uploadsFolder);
-                var uniqueFileName = $"{Guid.NewGuid()}{Path.GetExtension(certificationFile.FileName)}";
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await certificationFile.CopyToAsync(stream);
-                }
-
-                var teacherRequest = new TeacherRequest
-                {
-                    UserId = userId,
-                    Biography = request.Biography,
-                    ExperienceYears = request.ExperienceYears,
-                    CertificationsPath = $"/uploads/certificates/{uniqueFileName}",
-                    BranchId = request.BranchId, // Nullable olduğu için sorun yok
-                    Status = RequestStatus.Pending,
-                    RequestDate = DateTime.UtcNow
-                };
-
-                _context.TeacherRequests.Add(teacherRequest);
-                await _context.SaveChangesAsync();
-
-                TempData["SuccessMessage"] = "Başvurunuz başarıyla alındı!";
-                return RedirectToAction("PendingApproval", new { userId });
+                TempData["ErrorMessage"] = "Kullanıcı bulunamadı!";
+                return RedirectToAction("Create", "Users");
             }
-            catch (Exception ex)
+
+            // Sertifika dosyası zorunlu
+            if (certificationFile == null)
             {
-                TempData["ErrorMessage"] = $"Hata: {ex.Message}";
+                ModelState.AddModelError("certificationFile", "Sertifika dosyası gereklidir!");
+                ViewBag.Branches = new SelectList(await _context.Branches.ToListAsync(), "Id", "Name", request.BranchId);
                 return View(request);
             }
+            if (Path.GetExtension(certificationFile.FileName).ToLower() != ".pdf")
+            {
+                ModelState.AddModelError("certificationFile", "Sadece PDF dosyaları kabul edilir!");
+                ViewBag.Branches = new SelectList(await _context.Branches.ToListAsync(), "Id", "Name", request.BranchId);
+                return View(request);
+            }
+
+            // Dosyayı kaydet
+            var uploads = Path.Combine(_env.WebRootPath, "uploads", "certificates");
+            Directory.CreateDirectory(uploads);
+            var filename = $"{Guid.NewGuid()}{Path.GetExtension(certificationFile.FileName)}";
+            var filepath = Path.Combine(uploads, filename);
+            using (var fs = new FileStream(filepath, FileMode.Create))
+                await certificationFile.CopyToAsync(fs);
+
+            // Başvuruyu ekle
+            var teacherRequest = new TeacherRequest
+            {
+                UserId = userId,
+                Biography = request.Biography,
+                ExperienceYears = request.ExperienceYears,
+                CertificationsPath = $"/uploads/certificates/{filename}",
+                BranchId = request.BranchId,
+                Status = RequestStatus.Pending,
+                RequestDate = DateTime.UtcNow
+            };
+
+            _context.TeacherRequests.Add(teacherRequest);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Başvurunuz başarıyla alındı!";
+            return RedirectToAction("PendingApproval", new { userId });
         }
 
+        // GET: TeacherRequests/PendingApproval
         public async Task<IActionResult> PendingApproval(int userId)
         {
             var request = await _context.TeacherRequests
-                                        .FirstOrDefaultAsync(r => r.UserId == userId);
-
+                .FirstOrDefaultAsync(r => r.UserId == userId);
             if (request == null)
-            {
-                TempData["ErrorMessage"] = "Henüz başvurunuz bulunmamaktadır.";
                 return RedirectToAction("Apply", new { userId });
-            }
 
             return View(request);
         }
-
 
         // GET: TeacherRequests
         public async Task<IActionResult> Index()
