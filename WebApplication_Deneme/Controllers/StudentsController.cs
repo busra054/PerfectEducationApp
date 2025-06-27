@@ -278,30 +278,73 @@ namespace WebApplication_Deneme.Controllers
         [Authorize(Roles = "Öğrenci")]
         public async Task<IActionResult> MyCourses()
         {
+            // 1. Kullanıcı ve öğrenci kaydını al
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
                 return RedirectToAction("Index", "Account");
 
             var student = await _context.Students
-                .Include(s => s.Enrollments)
+                .Include(s => s.Enrollments)                     
                     .ThenInclude(e => e.Course)
-                        .ThenInclude(c => c.Package)
-                .Include(s => s.Enrollments)
-                    .ThenInclude(e => e.Course)
-                        .ThenInclude(c => c.Teacher)
-                            .ThenInclude(t => t.User)
                 .FirstOrDefaultAsync(s => s.UserId == user.Id);
 
             if (student == null)
-                return View(new List<CourseEnrollment>()); // TİP UYUMLU hale getirildi ✅
+                return View(new List<CourseEnrollment>());
 
+            // 2. Öğrencinin satın aldığı paketleri ve paket ID’lerini çıkar
+            var purchasedPackageIds = student.Enrollments
+                .Select(e => e.Course.PackageId)
+                .Distinct()
+                .ToList();
 
-            var enrollments = student.Enrollments.ToList();
+            if (!purchasedPackageIds.Any())
+            {
+                ViewBag.Message = "Henüz hiç paket satın almadınız.";
+                return View(new List<CourseEnrollment>());
+            }
+
+            // 3. Paketlere bağlı tüm kurs ID’lerini al
+            var allPackageCourseIds = await _context.Courses
+                .Where(c => purchasedPackageIds.Contains(c.PackageId))
+                .Select(c => c.Id)
+                .ToListAsync();
+
+            // 4. Öğrencinin zaten enroll ettiği kurs ID’leri
+            var enrolledCourseIds = student.Enrollments
+                .Select(e => e.CourseId)
+                .ToList();
+
+            // 5. Henüz eklenmemiş kursları tespit et ve yeni enrollment oluştur
+            var newCourseIds = allPackageCourseIds.Except(enrolledCourseIds);
+            foreach (var courseId in newCourseIds)
+            {
+                var ce = new CourseEnrollment
+                {
+                    StudentId = student.Id,
+                    CourseId = courseId,
+                    EnrollmentDate = DateTime.Now
+                };
+                _context.CourseEnrollments.Add(ce);
+            }
+
+            // 6. Değişiklikleri kaydet
+            if (newCourseIds.Any())
+                await _context.SaveChangesAsync();
+
+            // 7. Güncel enrollments listesini yeniden yükle
+            var enrollments = await _context.CourseEnrollments
+                .Include(e => e.Course)
+                    .ThenInclude(c => c.Teacher)
+                        .ThenInclude(t => t.User)
+                .Where(e => e.StudentId == student.Id)
+                .ToListAsync();
+
             if (!enrollments.Any())
                 ViewBag.Message = "Henüz hiç kursa kaydınız bulunmamaktadır.";
 
             return View(enrollments);
         }
+
 
         // GET: Students
         public async Task<IActionResult> Index()
